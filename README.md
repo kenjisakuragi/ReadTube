@@ -23,6 +23,7 @@ SMTP_PASS=your_app_password
 EMAIL_FROM=noreply@yourdomain.com
 SUPABASE_URL=your_supabase_url
 SUPABASE_SERVICE_KEY=your_supabase_service_key
+BASE_URL=https://your-readtube-app.vercel.app
 ```
 
 #### フロントエンド（`web/.env.local`）
@@ -80,6 +81,7 @@ GitHub Actionsで自動実行。以下のSecretsを設定：
 - `GEMINI_API_KEY`
 - `SMTP_HOST`, `SMTP_USER`, `SMTP_PASS`, `EMAIL_FROM`
 - `SUPABASE_URL`, `SUPABASE_SERVICE_KEY`
+- `BASE_URL`
 
 ## ライセンス
 MIT

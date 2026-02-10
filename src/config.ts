@@ -11,6 +11,7 @@ export const ConfigSchema = z.object({
     EMAIL_FROM: z.string().default('noreply@readtube.com'),
     SUPABASE_URL: z.string().optional(),
     SUPABASE_SERVICE_KEY: z.string().optional(),
+    BASE_URL: z.string().default('https://readtube.example.com'),
 });
 
 export const config = ConfigSchema.parse(process.env);

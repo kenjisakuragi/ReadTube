@@ -51,6 +51,7 @@ jobs:
           EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          BASE_URL: ${{ secrets.BASE_URL }}
         run: |
           mkdir -p data
           if [ "${{ github.event_name }}" == "workflow_dispatch" ] && [ -n "${{ github.event.inputs.video_id }}" ]; then
