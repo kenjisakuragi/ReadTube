@@ -20,6 +20,9 @@ export const ChannelSchema = z.object({
     id: z.string(),
     name: z.string(),
     persona: z.string(), // Expert persona for this channel
+    genre: z.string().default('その他'),
+    thumbnail: z.string().optional(),
+    description: z.string().optional(),
 });
 
 export type Channel = z.infer<typeof ChannelSchema>;
