@@ -188,9 +188,11 @@ export function renderEmail(
 
             <div class="footer">
                 <p>&copy; ${new Date().getFullYear()} ReadTube Premium</p>
-                <p>
-                    このメールは <strong>${channelName}</strong> チャンネルの定点観測レポートとしてお届けしています。<br>
-                    <a href="#">配信管理</a> | <a href="#">プライバシーポリシー</a>
+                <p style="margin: 10px 0; font-size: 14px; color: #718096;">
+                    このメールは <strong>${channelName}</strong> チャンネルの定点観測レポートとしてお届けしています。
+                </p>
+                <p style="font-size: 13px;">
+                    <a href="#">配信を停止する (Unsubscribe)</a> | <a href="https://readtube.example.com/privacy">プライバシーポリシー</a>
                 </p>
             </div>
         </div>

@@ -13,6 +13,7 @@
   "dependencies": {
     "@distube/ytdl-core": "^4.16.12",
     "@google/generative-ai": "^0.24.1",
+    "@supabase/supabase-js": "^2.95.3",
     "@types/marked": "^5.0.2",
     "dotenv": "^17.2.4",
     "marked": "^17.0.1",

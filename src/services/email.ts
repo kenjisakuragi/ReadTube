@@ -1,11 +1,11 @@
 import nodemailer from 'nodemailer';
 import { config } from '../config';
+import { getSubscribersForChannel } from './subscription_manager';
 
-// For MVP, we might want to just log to console if no SMTP config is present.
 const transporter = config.SMTP_HOST ? nodemailer.createTransport({
     host: config.SMTP_HOST,
     port: 587,
-    secure: false, // true for 465, false for other ports
+    secure: false,
     auth: {
         user: config.SMTP_USER,
         pass: config.SMTP_PASS,
@@ -13,25 +13,43 @@ const transporter = config.SMTP_HOST ? nodemailer.createTransport({
 }) : null;
 
 export async function sendChannelUpdate(
+    channelId: string,
     channelName: string,
     videoTitle: string,
-    htmlContent: string
+    htmlContent: string,
+    baseUrl: string = 'https://readtube.example.com'
 ): Promise<void> {
+    const subject = `【ReadTube】${videoTitle}`;
+    const subscribers = await getSubscribersForChannel(channelId);
 
-    const subject = `【完全版】${videoTitle}の全貌と、そこから学ぶ戦略`;
-
-    if (!transporter) {
-        console.log("--- MOCK EMAIL SEND ---");
-        console.log(`To: [Subscribers of ${channelName}]`);
-        console.log(`Subject: ${subject}`);
-        console.log("Content Preview:");
-        console.log(htmlContent.substring(0, 500) + "...");
-        console.log("--- END MOCK EMAIL ---");
-        // In a real app, we would loop through subscribers here.
+    if (subscribers.length === 0) {
+        console.warn(`[Email] No subscribers found for ${channelName} (${channelId}). Skipping.`);
         return;
     }
 
-    // TODO: Implement actual sending logic to list of subscribers
-    // For now, send to a test address if configured, or just log.
-    console.log(`[Email Service] Would send email for ${channelName}: ${subject}`);
+    if (!transporter) {
+        console.log(`[Email Mock] ${subscribers.length} subscribers would receive: ${subject}`);
+        return;
+    }
+
+    for (const subscriber of subscribers) {
+        try {
+            // Add unsubscribe link to the HTML content
+            const unsubscribeUrl = `${baseUrl}/unsubscribe/${subscriber.token}`;
+            const htmlWithUnsubscribe = htmlContent.replace(
+                '<a href="#">配信を停止する (Unsubscribe)</a>',
+                `<a href="${unsubscribeUrl}">配信を停止する (Unsubscribe)</a>`
+            );
+
+            await transporter.sendMail({
+                from: `"ReadTube Premium" <${config.EMAIL_FROM}>`,
+                to: subscriber.email,
+                subject: subject,
+                html: htmlWithUnsubscribe,
+            });
+            console.log(`  > Sent to ${subscriber.email}`);
+        } catch (error) {
+            console.error(`  > Failed to send to ${subscriber.email}:`, error);
+        }
+    }
 }

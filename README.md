@@ -1,47 +1,85 @@
-# ReadTube Premium Pipeline
+# ReadTube - YouTubeを記事として読む
 
-YouTubeの動画をAI（Gemini 2.0 Flash）が解析し、プロフェッショナルな日本語レポートとしてメール配信する自動化システムです。
+AIがYouTube動画を解析し、プロのライターが書いたような日本語レポートをメールで配信する無料SaaSサービスです。
 
-## 主な機能
+## アーキテクチャ
 
-- **堅牢な字幕取得**: `yt-dlp` を使用し、ブロックを回避しながら字幕を抽出。
-- **マルチモーダル解析**: 字幕がない場合は動画の音声を直接Geminiにアップロードして解析。
-- **プレミアム・ライティング**: プロのテックライターのような、鋭く読み応えのある日本語記事を自動生成。
-- **リッチなメール配信**: サムネイル画像付きの洗練されたデザインでレポートを配信。
+```
+web/          - Next.jsフロントエンド（ランディングページ、購読管理）
+src/          - バックエンド処理（動画解析、メール配信）
+.github/      - GitHub Actions（自動実行）
+```
 
 ## セットアップ
 
 ### 1. 環境変数の設定
-`.env` ファイルを作成し、以下の情報を設定してください。
 
+#### バックエンド（ルートディレクトリの `.env`）
 ```env
 GEMINI_API_KEY=your_gemini_api_key
-SMTP_HOST=your_smtp_host
-SMTP_USER=your_smtp_user
-SMTP_PASS=your_smtp_pass
+SMTP_HOST=smtp.gmail.com
+SMTP_USER=your_email@gmail.com
+SMTP_PASS=your_app_password
 EMAIL_FROM=noreply@yourdomain.com
+SUPABASE_URL=your_supabase_url
+SUPABASE_SERVICE_KEY=your_supabase_service_key
 ```
 
-### 2. ローカルでの実行
-最新の動画を1本テスト解析する場合：
+#### フロントエンド（`web/.env.local`）
+```env
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+```
+
+### 2. Supabaseのセットアップ
+
+Supabaseプロジェクトを作成し、以下のSQLを実行してください：
+
+```sql
+CREATE TABLE users (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  email TEXT UNIQUE NOT NULL,
+  created_at TIMESTAMP DEFAULT NOW(),
+  unsubscribe_token TEXT UNIQUE NOT NULL
+);
+
+CREATE TABLE subscriptions (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  user_id UUID REFERENCES users(id) ON DELETE CASCADE,
+  channel_id TEXT NOT NULL,
+  created_at TIMESTAMP DEFAULT NOW(),
+  UNIQUE(user_id, channel_id)
+);
+```
+
+### 3. ローカル開発
+
+#### フロントエンド
+```bash
+cd web
+npm install
+npm run dev
+```
+
+#### バックエンド（テスト実行）
 ```bash
 npx ts-node scripts/run_pipeline.ts [VIDEO_ID]
 ```
 
-全チャンネルの新規動画をチェックする場合：
+## デプロイ
+
+### フロントエンド
+Vercelにデプロイ（推奨）:
 ```bash
-npx ts-node src/index.ts
+cd web
+vercel
 ```
 
-## GitHub Actions での運用
+### バックエンド
+GitHub Actionsで自動実行。以下のSecretsを設定：
+- `GEMINI_API_KEY`
+- `SMTP_HOST`, `SMTP_USER`, `SMTP_PASS`, `EMAIL_FROM`
+- `SUPABASE_URL`, `SUPABASE_SERVICE_KEY`
 
-リポジトリをGitHubにプッシュした後、以下の **Repository Secrets** を設定してください。
-
-1. `GEMINI_API_KEY` (必須)
-2. `SMTP_HOST`
-3. `SMTP_USER`
-4. `SMTP_PASS`
-5. `EMAIL_FROM`
-
-設定後、毎日 00:00 UTC に自動実行され、新規動画があればレポートが生成・配信されます。
-また、GitHub Actionsの画面から `Run workflow` を選ぶことで、特定の動画IDを指定して手動実行することも可能です。
+## ライセンス
+MIT

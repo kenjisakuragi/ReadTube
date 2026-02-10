@@ -49,7 +49,7 @@ async function main() {
             const videoUrl = `https://www.youtube.com/watch?v=${video.id}`;
             const htmlReport = renderEmail(channel.name, video.title, guide, videoUrl);
 
-            await sendChannelUpdate(channel.name, video.title, htmlReport);
+            await sendChannelUpdate(channel.id, channel.name, video.title, htmlReport);
 
             // 4. Update State
             processedVideos.push(video.id);
