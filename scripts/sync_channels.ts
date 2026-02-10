@@ -48,25 +48,30 @@ async function sync() {
 
                 const existing = channelsMap.get(channelId);
 
-                if (existing) {
-                    console.log(`    ℹ️  Channel ${existing.name} already exists. Updating genre/meta...`);
-                    existing.genre = currentGenre;
-                    finalChannels.push(existing);
-                } else {
-                    // Fetch full info for new channel
-                    const output = execSync(`${ytdlpCmd} --print "%(channel_id)s|%(channel)s|%(thumbnails.-1.url)s" --playlist-items 1 "${trimmed}"`, { encoding: 'utf-8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
-                    const [id, name, thumbnail] = output.split('|');
+                // Fetch full info for new or existing (to update counts)
+                const output = execSync(`${ytdlpCmd} --print "%(channel_id)s|%(channel)s|%(thumbnails.-1.url)s|%(channel_follower_count)s|%(playlist_count)s" --playlist-items 1 "${trimmed}"`, { encoding: 'utf-8', stdio: ['ignore', 'pipe', 'ignore'] }).trim();
+                const [id, name, thumbnail, subs, vcount] = output.split('|');
 
-                    finalChannels.push({
-                        id: id,
-                        name: name,
-                        persona: `Expert Analyst in ${currentGenre}`,
-                        genre: currentGenre,
-                        thumbnail: thumbnail,
-                        description: `YouTube's leading insights for ${currentGenre}.`
-                    });
-                    console.log(`    ✅ Added new: ${name}`);
-                }
+                const formatCount = (count: string) => {
+                    const n = parseInt(count);
+                    if (isNaN(n)) return count;
+                    if (n >= 10000) return (n / 10000).toFixed(1) + '万';
+                    return n.toLocaleString();
+                };
+
+                const channelData = {
+                    id: id,
+                    name: name,
+                    persona: existing?.persona || `Expert Analyst in ${currentGenre}`,
+                    genre: currentGenre,
+                    thumbnail: thumbnail,
+                    description: existing?.description || `YouTube's leading insights for ${currentGenre}.`,
+                    subscribers: formatCount(subs),
+                    videoCount: formatCount(vcount)
+                };
+
+                finalChannels.push(channelData);
+                console.log(`    ✅ Processed: ${name} (Subs: ${channelData.subscribers}, Videos: ${channelData.videoCount})`);
             } catch (e: any) {
                 console.error(`    ❌ Failed: ${e.message}`);
             }

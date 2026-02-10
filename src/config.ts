@@ -23,6 +23,8 @@ export const ChannelSchema = z.object({
     genre: z.string().default('その他'),
     thumbnail: z.string().optional(),
     description: z.string().optional(),
+    subscribers: z.string().optional(),
+    videoCount: z.string().optional(),
 });
 
 export type Channel = z.infer<typeof ChannelSchema>;
