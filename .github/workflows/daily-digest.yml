@@ -2,7 +2,7 @@ name: Daily YouTube Digest
 
 on:
   schedule:
-    - cron: '0 0 * * *' # Daily at 00:00 UTC
+    - cron: '0 22 * * *' # Daily at 22:00 UTC (07:00 JST)
   workflow_dispatch:
     inputs:
       video_id:
