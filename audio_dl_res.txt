@@ -1,0 +1,8 @@
+Downloading audio for M6_V6HqY-OE...
+C:\Users\kokor\antigravity\ReadTube\node_modules\@distube\ytdl-core\lib\utils.js:168
+    return new UnrecoverableError(playability.reason || playability.messages?.[0]);
+           ^
+UnrecoverableError: Video unavailable
+    at Object.exports.playError (C:\Users\kokor\antigravity\ReadTube\node_modules\@distube\ytdl-core\lib\utils.js:168:12)
+    at exports.getBasicInfo (C:\Users\kokor\antigravity\ReadTube\node_modules\@distube\ytdl-core\lib\info.js:44:25)
+    at processTicksAndRejections (node:internal/process/task_queues:103:5)
