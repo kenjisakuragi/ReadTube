@@ -5,19 +5,27 @@ import { sendChannelUpdate } from './services/email';
 import { renderEmail } from './services/email_renderer';
 import { Channel } from './config';
 import fs from 'fs';
+import { createClient } from '@supabase/supabase-js';
+import dotenv from 'dotenv';
 import path from 'path';
+
+// Load env
+dotenv.config({ path: path.resolve(__dirname, '../.env') });
 
 // Load channels config
 const channelsConfigPath = path.join(__dirname, '../config/channels.json');
 const channels: Channel[] = JSON.parse(fs.readFileSync(channelsConfigPath, 'utf-8'));
 
-// State file to track processed videos
-const stateFilePath = path.join(__dirname, '../data/processed_videos.json');
-let processedVideos: string[] = [];
+// Initialize Supabase
+const supabaseUrl = process.env.SUPABASE_URL;
+const supabaseKey = process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_KEY;
 
-if (fs.existsSync(stateFilePath)) {
-    processedVideos = JSON.parse(fs.readFileSync(stateFilePath, 'utf-8'));
+if (!supabaseUrl || !supabaseKey) {
+    console.error("Missing Supabase credentials (SUPABASE_URL or SUPABASE_SERVICE_KEY).");
+    process.exit(1);
 }
+
+const supabase = createClient(supabaseUrl, supabaseKey);
 
 async function main() {
     console.log("Starting ReadTube polling...");
@@ -27,7 +35,14 @@ async function main() {
         const newVideos = await checkNewVideos(channel.id);
 
         for (const video of newVideos) {
-            if (processedVideos.includes(video.id)) {
+            // Check if already processed
+            const { data: existing } = await supabase
+                .from('processed_videos')
+                .select('video_id')
+                .eq('video_id', video.id)
+                .single();
+
+            if (existing) {
                 continue;
             }
 
@@ -52,11 +67,12 @@ async function main() {
             await sendChannelUpdate(channel.id, channel.name, video.title, htmlReport);
 
             // 4. Update State
-            processedVideos.push(video.id);
-            if (!fs.existsSync(path.dirname(stateFilePath))) {
-                fs.mkdirSync(path.dirname(stateFilePath), { recursive: true });
-            }
-            fs.writeFileSync(stateFilePath, JSON.stringify(processedVideos, null, 2));
+            await supabase.from('processed_videos').insert({
+                video_id: video.id,
+                channel_id: channel.id,
+                title: video.title,
+                status: 'success'
+            });
             console.log(`  - Done.`);
         }
     }
