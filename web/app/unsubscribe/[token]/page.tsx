@@ -1,47 +1,26 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { useParams, useRouter } from 'next/navigation'
-import { supabase } from '@/lib/supabase'
+import { processUnsubscribe } from '../actions'
 
 export default function UnsubscribePage() {
     const params = useParams()
     const router = useRouter()
     const [status, setStatus] = useState<'loading' | 'success' | 'error'>('loading')
     const [email, setEmail] = useState('')
+    const [message, setMessage] = useState('') // Adding message state for error details
 
     useEffect(() => {
         const unsubscribe = async () => {
             const token = params.token as string
 
-            try {
-                // トークンからユーザーを取得
-                const { data: user, error: userError } = await supabase
-                    .from('users')
-                    .select('*')
-                    .eq('unsubscribe_token', token)
-                    .single()
+            // Call the server action
+            const result = await processUnsubscribe(token)
 
-                if (userError || !user) {
-                    setStatus('error')
-                    return
-                }
-
-                setEmail(user.email)
-
-                // すべての購読を削除
-                const { error: deleteError } = await supabase
-                    .from('subscriptions')
-                    .delete()
-                    .eq('user_id', user.id)
-
-                if (deleteError) {
-                    setStatus('error')
-                    return
-                }
-
+            if (result.success) {
+                setEmail(result.email)
                 setStatus('success')
-            } catch (error) {
+            } else {
+                setMessage(result.message)
                 setStatus('error')
             }
         }
