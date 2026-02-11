@@ -1,0 +1,53 @@
+name: Test YouTube Transcript Fetch
+
+on:
+  workflow_dispatch:  # 手動実行のみ
+
+jobs:
+  test-transcript:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install dependencies (ffmpeg and python for yt-dlp)
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg python3 python3-pip
+
+      - name: Install yt-dlp
+        run: |
+          sudo curl -L https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o /usr/local/bin/yt-dlp
+          sudo chmod a+rx /usr/local/bin/yt-dlp
+
+      - name: Verify yt-dlp installation
+        run: yt-dlp --version
+
+      - name: Test Fetch Subtitles (Rick Astley - Never Gonna Give You Up)
+        run: |
+          # Try to fetch English subtitles
+          yt-dlp --write-auto-subs --sub-langs en --skip-download --output "test_transcript" "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+          
+          if [ -f "test_transcript.en.vtt" ]; then
+            echo "✅ Successfully fetched subtitles!"
+            ls -l test_transcript.en.vtt
+            head -n 20 test_transcript.en.vtt
+          else
+            echo "❌ Failed to fetch subtitles."
+            exit 1
+          fi
+
+      - name: Test Fetch Audio (Fallback method)
+        if: always() # Run even if previous step failed
+        run: |
+          # Try to download audio only (small file check)
+          yt-dlp -f "ba" --max-filesize 10M --output "test_audio.%(ext)s" "https://www.youtube.com/watch?v=dQw4w9WgXcQ"
+
+          if ls test_audio.* 1> /dev/null 2>&1; then
+             echo "✅ Successfully downloaded audio!"
+             ls -l test_audio.*
+          else
+             echo "❌ Failed to download audio."
+             exit 1
+          fi
