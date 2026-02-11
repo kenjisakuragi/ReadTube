@@ -1,6 +1,7 @@
 import nodemailer from 'nodemailer';
 import { config } from '../config';
 import { getSubscribersForChannel } from './subscription_manager';
+import { renderWelcomeEmail } from './email_renderer';
 
 const transporter = config.SMTP_HOST ? nodemailer.createTransport({
     host: config.SMTP_HOST,
@@ -62,5 +63,34 @@ export async function sendChannelUpdate(
         } catch (error) {
             console.error(`  > Failed to send to ${subscriber.email}:`, error);
         }
+    }
+}
+
+export async function sendWelcomeEmail(
+    toEmail: string,
+    channelNames: string[],
+    unsubscribeToken: string,
+    baseUrl: string = config.BASE_URL
+): Promise<void> {
+    const subject = `【ReadTube】登録が完了しました`;
+    const unsubscribeUrl = `${baseUrl || 'https://readtube.jp'}/unsubscribe/${unsubscribeToken}`;
+    const htmlContent = renderWelcomeEmail(channelNames, unsubscribeUrl);
+
+    if (!transporter) {
+        console.log(`[Email Mock] Welcome email to ${toEmail}`);
+        console.log(`  Channels: ${channelNames.join(', ')}`);
+        return;
+    }
+
+    try {
+        await transporter.sendMail({
+            from: `"ReadTube Premium" <${config.EMAIL_FROM}>`,
+            to: toEmail,
+            subject: subject,
+            html: htmlContent,
+        });
+        console.log(`  > Welcome email sent to ${toEmail}`);
+    } catch (error) {
+        console.error(`  > Failed to send welcome email to ${toEmail}:`, error);
     }
 }

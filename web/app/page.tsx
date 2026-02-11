@@ -3,6 +3,7 @@
 import { useState, useMemo } from 'react'
 import { supabase } from '@/lib/supabase'
 import channelsData from '../../config/channels.json'
+import { registerUser } from './actions'
 
 interface Channel {
   id: string
@@ -33,6 +34,10 @@ export default function Home() {
     return Array.from(map.entries())
   }, [channels])
 
+  import { registerUser } from './actions'
+
+  // ... (inside Home component)
+
   const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault()
     if (selectedChannels.length === 0) {
@@ -45,31 +50,15 @@ export default function Home() {
     setMessage('')
 
     try {
-      const unsubscribeToken = crypto.randomUUID()
+      // Call Server Action
+      const result = await registerUser(email, selectedChannels)
 
-      // UPSERT user
-      const { data: userData, error: userError } = await supabase
-        .from('users')
-        .upsert({ email, unsubscribe_token: unsubscribeToken }, { onConflict: 'email' })
-        .select()
-        .single()
-
-      if (userError) throw userError
-
-      // UPSERT subscriptions
-      const subscriptions = selectedChannels.map(channelId => ({
-        user_id: userData.id,
-        channel_id: channelId
-      }))
-
-      const { error: subError } = await supabase
-        .from('subscriptions')
-        .upsert(subscriptions, { onConflict: 'user_id,channel_id' })
-
-      if (subError) throw subError
+      if (!result.success) {
+        throw new Error(result.message || '登録処理に失敗しました。')
+      }
 
       setStatus('success')
-      setMessage('登録完了！最新の動画レポートをお届けします。')
+      setMessage('登録完了！登録確認メールをお送りしました。')
       setEmail('')
       setSelectedChannels([])
     } catch (error: any) {
@@ -170,8 +159,8 @@ export default function Home() {
                     key={channel.id}
                     onClick={() => toggleChannel(channel.id)}
                     className={`group relative bg-white border-2 rounded-2xl overflow-hidden cursor-pointer transition-all duration-300 hover:shadow-xl ${selectedChannels.includes(channel.id)
-                        ? 'border-[#FF0000] ring-4 ring-[#FF0000]/5'
-                        : 'border-slate-100'
+                      ? 'border-[#FF0000] ring-4 ring-[#FF0000]/5'
+                      : 'border-slate-100'
                       }`}
                   >
                     {/* Thumbnail */}

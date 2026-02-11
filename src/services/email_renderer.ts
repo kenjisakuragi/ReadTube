@@ -206,3 +206,58 @@ export function renderEmail(
 </html>
     `.trim();
 }
+
+export function renderWelcomeEmail(
+    channelNames: string[],
+    unsubscribeUrl: string
+): string {
+    const listItems = channelNames.map(name => `<li style="margin-bottom: 8px;">${name}</li>`).join('');
+
+    return `
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>登録完了のお知らせ</title>
+    ${EMAIL_STYLES}
+</head>
+<body>
+    <div class="wrapper">
+        <div class="container">
+            <div class="header" style="background-color: #000; padding: 30px 40px; text-align: center;">
+                <h1 style="color: #fff; margin: 0; font-size: 24px; font-weight: 900; letter-spacing: 1px;">ReadTube</h1>
+            </div>
+
+            <div class="content">
+                <h2>登録ありがとうございます</h2>
+                <p>ReadTube プレミアム（無料）への登録が完了しました。<br>
+                以下のチャンネルのAI解析レポートを、毎朝お届けします。</p>
+
+                <div class="insight-card">
+                    <span class="insight-label">Subscribed Channels</span>
+                    <ul style="margin: 0; padding-left: 20px; margin-top: 10px; color: #2D3748; font-weight: 600;">
+                        ${listItems}
+                    </ul>
+                </div>
+
+                <p>明日からの配信をお楽しみに！</p>
+                
+                <div style="text-align: center; margin-top: 40px;">
+                    <a href="${unsubscribeUrl}" class="cta-button" style="background-color: #fff; color: #2D3748 !important; border: 1px solid #CBD5E0;">配信設定を確認する</a>
+                </div>
+            </div>
+
+            <div class="footer">
+                <p>&copy; ${new Date().getFullYear()} ReadTube Premium</p>
+                <p style="font-size: 13px;">
+                    このメールは ReadTube への登録完了通知としてお送りしています。<br>
+                    <a href="${unsubscribeUrl}">購読解除 (Unsubscribe)</a>
+                </p>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+    `.trim();
+}
