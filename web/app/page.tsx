@@ -34,10 +34,6 @@ export default function Home() {
     return Array.from(map.entries())
   }, [channels])
 
-  import { registerUser } from './actions'
-
-  // ... (inside Home component)
-
   const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault()
     if (selectedChannels.length === 0) {
