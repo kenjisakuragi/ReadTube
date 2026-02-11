@@ -4,8 +4,8 @@ import { getSubscribersForChannel } from './subscription_manager';
 
 const transporter = config.SMTP_HOST ? nodemailer.createTransport({
     host: config.SMTP_HOST,
-    port: 587,
-    secure: false,
+    port: config.SMTP_PORT,
+    secure: config.SMTP_SECURE,
     auth: {
         user: config.SMTP_USER,
         pass: config.SMTP_PASS,
@@ -34,11 +34,22 @@ export async function sendChannelUpdate(
 
     for (const subscriber of subscribers) {
         try {
-            // Add unsubscribe link to the HTML content
-            const unsubscribeUrl = `${baseUrl}/unsubscribe/${subscriber.token}`;
+            // Add personalized unsubscribe link to the HTML content
+            const unsubscribeUrl = `${baseUrl || 'https://readtube.jp'}/unsubscribe/${subscriber.token}`;
+
+            // We look for the placeholder we set in email_renderer.ts
+            // The placeholder is constructed as: `${base}/unsubscribe/TOKEN_PLACEHOLDER`
+            // But since 'base' might vary, the robust way is to replace the entire href if possible,
+            // or we simply look for the specific suffix we know we put there.
+
+            // Simpler approach: In email_renderer, we set href to be something like "UNSUBSCRIBE_LINK_PLACEHOLDER" would be safer.
+            // But based on my previous edit, it was `${base}/unsubscribe/TOKEN_PLACEHOLDER`.
+            // So we will do a string replacement on that specific pattern.
+
+            // Let's rely on a more unique token placeholder in the future, but for now:
             const htmlWithUnsubscribe = htmlContent.replace(
-                '<a href="#">配信を停止する (Unsubscribe)</a>',
-                `<a href="${unsubscribeUrl}">配信を停止する (Unsubscribe)</a>`
+                /href="[^"]*\/unsubscribe\/TOKEN_PLACEHOLDER"/,
+                `href="${unsubscribeUrl}"`
             );
 
             await transporter.sendMail({

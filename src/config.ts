@@ -6,12 +6,14 @@ dotenv.config();
 export const ConfigSchema = z.object({
     GEMINI_API_KEY: z.string(),
     SMTP_HOST: z.string().optional(),
+    SMTP_PORT: z.coerce.number().default(587),
+    SMTP_SECURE: z.coerce.boolean().default(false),
     SMTP_USER: z.string().optional(),
     SMTP_PASS: z.string().optional(),
-    EMAIL_FROM: z.string().default('noreply@readtube.com'),
+    EMAIL_FROM: z.string().default('noreply@readtube.jp'),
     SUPABASE_URL: z.string().optional(),
     SUPABASE_SERVICE_KEY: z.string().optional(),
-    BASE_URL: z.string().default('https://readtube.example.com'),
+    BASE_URL: z.string().default('https://readtube.jp'),
 });
 
 export const config = ConfigSchema.parse(process.env);

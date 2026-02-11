@@ -146,6 +146,11 @@ export function renderEmail(
     });
 
     // 4. Assemble the full template
+    // Use the provided baseUrl for links, falling back to a default if not provided
+    const base = 'https://readtube.jp';
+    const privacyUrl = `${base}/privacy`;
+    const unsubscribePlaceholder = `${base}/unsubscribe/TOKEN_PLACEHOLDER`;
+
     return `
 <!DOCTYPE html>
 <html lang="ja">
@@ -192,7 +197,7 @@ export function renderEmail(
                     このメールは <strong>${channelName}</strong> チャンネルの定点観測レポートとしてお届けしています。
                 </p>
                 <p style="font-size: 13px;">
-                    <a href="#">配信を停止する (Unsubscribe)</a> | <a href="https://readtube.example.com/privacy">プライバシーポリシー</a>
+                    <a href="${unsubscribePlaceholder}">配信を停止する (Unsubscribe)</a> | <a href="${privacyUrl}">プライバシーポリシー</a>
                 </p>
             </div>
         </div>
