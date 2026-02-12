@@ -28,9 +28,9 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y ffmpeg python3
 
-      - name: Install yt-dlp
+      - name: Install yt-dlp and transcript-api
         run: |
-          python3 -m pip install -U yt-dlp
+          python3 -m pip install -U yt-dlp youtube-transcript-api
 
       - name: Install dependencies (Node)
         run: npm ci

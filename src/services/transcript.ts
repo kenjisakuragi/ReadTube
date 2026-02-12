@@ -18,24 +18,41 @@ export async function getTranscript(videoId: string): Promise<string | null> {
         : 'yt-dlp';
 
     try {
-        console.log(`[Transcript] Attempting robust fetch with yt-dlp...`);
-        // Try to get subtitles first (fastest)
+        // Method 1: youtube-transcript-api (Most reliable for transcripts in data centers)
+        console.log(`[Transcript] Trying youtube-transcript-api (Primary)...`);
+        try {
+            // Using python3 to call the library directly. Output is JSON, let's just get the text.
+            // Wait, youtube-transcript-api command line outputs JSON or formatted text.
+            // Simple approach: create a small python script on the fly or just use the CLI.
+            // The CLI prints to stdout. Let's try to parse it.
+            const transcriptOutput = execSync(`python3 -m youtube_transcript_api ${videoId} --format json`, { stdio: 'pipe' }).toString();
+            const segments = JSON.parse(transcriptOutput);
+            const fullText = segments.map((s: any) => s.text).join(' ');
+
+            if (fullText && fullText.length > 100) {
+                console.log(`  > Success with youtube-transcript-api!`);
+                return fullText;
+            }
+        } catch (e: any) {
+            console.warn(`  > Primary method failed. Trying yt-dlp subtitles...`);
+        }
+
+        // Method 2: yt-dlp (Subtitles)
+        console.log(`[Transcript] Attempting fetch with yt-dlp...`);
         try {
             // Added flags to help bypass blocks in data centers
-            const commonFlags = `--no-check-certificates --extractor-args "youtube:player-client=web,mweb"`;
+            const commonFlags = `--no-check-certificates --extractor-args "youtube:player-client=android,web" --user-agent "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36"`;
             execSync(`${ytdlpCmd} ${commonFlags} --write-auto-subs --sub-langs en --skip-download -o "transcript_${videoId}" "https://www.youtube.com/watch?v=${videoId}"`, { stdio: 'pipe' });
 
             if (fs.existsSync(vttPath)) {
                 console.log(`  > Found subtitles!`);
                 const content = fs.readFileSync(vttPath, 'utf-8');
-                // Simple VTT to text
                 const text = content
                     .replace(/WEBVTT[\s\S]*?\n\n/, '')
                     .replace(/\d{2}:\d{2}:\d{2}.\d{3} --> \d{2}:\d{2}:\d{2}.\d{3}\n/g, '')
                     .replace(/\n+/g, ' ')
                     .trim();
 
-                // Cleanup
                 fs.unlinkSync(vttPath);
                 return text;
             }
@@ -44,10 +61,10 @@ export async function getTranscript(videoId: string): Promise<string | null> {
             console.warn(`  > yt-dlp subtitle fetch failed: ${stderr.substring(0, 100)}...`);
         }
 
-        // Audio Fallback
+        // Method 3: Audio Fallback (Last resort)
         console.log(`[Transcript] Downloading audio for multimodal transcription...`);
         try {
-            const commonFlags = `--no-check-certificates --extractor-args "youtube:player-client=web,mweb"`;
+            const commonFlags = `--no-check-certificates --extractor-args "youtube:player-client=android,web" --user-agent "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36"`;
             execSync(`${ytdlpCmd} ${commonFlags} -f "ba" -o "audio_${videoId}.webm" "https://www.youtube.com/watch?v=${videoId}"`, { stdio: 'pipe' });
 
             if (fs.existsSync(audioPath)) {
@@ -57,10 +74,7 @@ export async function getTranscript(videoId: string): Promise<string | null> {
                     displayName: `Audio for ${videoId}`,
                 });
 
-                // Clean up local file
                 fs.unlinkSync(audioPath);
-
-                // Return a special token that commentator.ts will handle
                 return `GEMINI_AUDIO_URI:${uploadResponse.file.uri}:${uploadResponse.file.mimeType}`;
             }
         } catch (e: any) {
