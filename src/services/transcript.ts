@@ -13,11 +13,11 @@ export async function getTranscript(videoId: string): Promise<string | null> {
     try {
         const options = {
             method: 'GET',
-            url: 'https://youtube-transcript3.p.rapidapi.com/api/transcript-with-videoid',
+            url: 'https://youtube-transcript3.p.rapidapi.com/api/transcript-with-url',
             params: {
-                videoId: videoId,
+                url: `https://www.youtube.com/watch?v=${videoId}`,
                 flat_text: 'true',
-                lang: 'en' // Default to English as the source content is mostly English
+                lang: 'en'
             },
             headers: {
                 'x-rapidapi-key': config.RAPIDAPI_KEY,
@@ -27,9 +27,8 @@ export async function getTranscript(videoId: string): Promise<string | null> {
 
         const response = await axios.request(options);
 
-        // This API with flat_text=true typically returns { transcript: "...", ... } 
-        // or just the string depending on version. Let's handle both.
         if (response.data) {
+            // According to the image, flat_text=true should return a cleaner response
             const transcript = response.data.transcript || response.data;
             if (typeof transcript === 'string' && transcript.length > 50) {
                 console.log(`  > Successfully retrieved transcript (${transcript.length} chars)`);
