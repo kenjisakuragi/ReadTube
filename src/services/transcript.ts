@@ -41,7 +41,8 @@ export async function getTranscript(videoId: string): Promise<string | null> {
         console.log(`[Transcript] Attempting fetch with yt-dlp...`);
         try {
             // Added flags to help bypass blocks in data centers
-            const commonFlags = `--no-check-certificates --extractor-args "youtube:player-client=android,web" --user-agent "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36"`;
+            // "ios" and "tv" clients are often less restricted than "web"
+            const commonFlags = `--no-check-certificates --extractor-args "youtube:player-client=ios,tv,web" --user-agent "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1"`;
             execSync(`${ytdlpCmd} ${commonFlags} --write-auto-subs --sub-langs en --skip-download -o "transcript_${videoId}" "https://www.youtube.com/watch?v=${videoId}"`, { stdio: 'pipe' });
 
             if (fs.existsSync(vttPath)) {
@@ -64,7 +65,7 @@ export async function getTranscript(videoId: string): Promise<string | null> {
         // Method 3: Audio Fallback (Last resort)
         console.log(`[Transcript] Downloading audio for multimodal transcription...`);
         try {
-            const commonFlags = `--no-check-certificates --extractor-args "youtube:player-client=android,web" --user-agent "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.0.0 Safari/537.36"`;
+            const commonFlags = `--no-check-certificates --extractor-args "youtube:player-client=ios,tv,web" --user-agent "Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1"`;
             execSync(`${ytdlpCmd} ${commonFlags} -f "ba" -o "audio_${videoId}.webm" "https://www.youtube.com/watch?v=${videoId}"`, { stdio: 'pipe' });
 
             if (fs.existsSync(audioPath)) {
