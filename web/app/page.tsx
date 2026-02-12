@@ -1,7 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
-import { supabase } from '@/lib/supabase'
+import { useState, useMemo, useEffect } from 'react'
 import channelsData from '@/data/channels.json'
 import { registerUser } from './actions'
 
@@ -9,6 +8,7 @@ interface Channel {
   id: string
   name: string
   description: string
+  descriptionJa?: string
   genre: string
   thumbnail?: string
   subscribers?: string
@@ -20,6 +20,7 @@ export default function Home() {
   const [selectedChannels, setSelectedChannels] = useState<string[]>([])
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
   const [message, setMessage] = useState('')
+  const [showFloatingBar, setShowFloatingBar] = useState(false)
 
   const channels = channelsData as Channel[]
 
@@ -34,6 +35,15 @@ export default function Home() {
     return Array.from(map.entries())
   }, [channels])
 
+  // Show/hide floating bar based on selection
+  useEffect(() => {
+    if (selectedChannels.length > 0) {
+      setShowFloatingBar(true)
+    } else {
+      setShowFloatingBar(false)
+    }
+  }, [selectedChannels])
+
   const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault()
     if (selectedChannels.length === 0) {
@@ -46,7 +56,6 @@ export default function Home() {
     setMessage('')
 
     try {
-      // Call Server Action
       const result = await registerUser(email, selectedChannels)
 
       if (!result.success) {
@@ -71,6 +80,10 @@ export default function Home() {
     )
   }
 
+  const scrollToChannels = () => {
+    document.getElementById('channels')?.scrollIntoView({ behavior: 'smooth' })
+  }
+
   return (
     <div className="min-h-screen bg-[#F9F9F9] text-[#0F0F0F] selection:bg-[#FF0000]/10">
       {/* Header / Brand */}
@@ -88,12 +101,14 @@ export default function Home() {
           </div>
 
           <div className="hidden md:flex items-center gap-4">
-            <span className="text-sm font-medium text-slate-500">YouTubeの知性を、記事として読む</span>
+            <a href="/dashboard" className="text-sm font-bold text-slate-500 hover:text-[#FF0000] transition-colors">最新レポート</a>
+            <span className="text-slate-300">|</span>
+            <a href="/channels" className="text-sm font-bold text-slate-500 hover:text-[#FF0000] transition-colors">チャンネル一覧</a>
           </div>
         </div>
       </header>
 
-      {/* Hero Section */}
+      {/* Hero Section — No email input */}
       <section className="pt-40 pb-20 px-4 bg-white">
         <div className="container mx-auto text-center max-w-3xl">
           <div className="inline-flex items-center gap-2 bg-[#FF0000]/5 text-[#FF0000] px-4 py-1.5 rounded-full text-sm font-bold mb-8">
@@ -112,35 +127,25 @@ export default function Home() {
             最新動画をAIが解析し、鋭い日本語レポートを毎晩お届けします。
           </p>
 
-          <form onSubmit={handleSubscribe} className="max-w-xl mx-auto">
-            <div className="flex flex-col md:flex-row gap-3 p-2 bg-[#F2F2F2] rounded-[2rem] focus-within:bg-white focus-within:ring-2 focus-within:ring-[#FF0000]/20 transition-all border border-transparent focus-within:border-[#FF0000]/30">
-              <input
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                placeholder="メールアドレスを入力"
-                className="flex-1 bg-transparent rounded-full px-6 py-4 outline-none text-lg font-medium"
-              />
-              <button
-                type="submit"
-                disabled={status === 'loading' || selectedChannels.length === 0}
-                className="bg-[#FF0000] text-white px-10 py-4 rounded-full font-bold hover:bg-[#CC0000] transition-all disabled:bg-slate-300 disabled:text-slate-500 active:scale-95 text-lg shadow-lg shadow-[#FF0000]/20"
-              >
-                無料購読を開始
-              </button>
-            </div>
-            {selectedChannels.length === 0 && (
-              <p className="mt-4 text-sm font-bold text-[#FF0000]">
-                ステップ 1: 下のリストから気になるチャンネルを選択してください
-              </p>
-            )}
-          </form>
+          <button
+            onClick={scrollToChannels}
+            className="bg-[#FF0000] text-white px-10 py-4 rounded-full font-bold text-lg hover:bg-[#CC0000] transition-all active:scale-95 shadow-lg shadow-[#FF0000]/20 inline-flex items-center gap-2"
+          >
+            チャンネルを見る
+            <svg className="w-5 h-5 animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+            </svg>
+          </button>
         </div>
       </section>
 
       {/* Channels Grid */}
-      <main className="container mx-auto px-4 py-20 max-w-7xl">
+      <main id="channels" className="container mx-auto px-4 py-20 max-w-7xl">
+        <div className="text-center mb-16">
+          <h2 className="text-3xl font-black text-slate-900 mb-3">購読するチャンネルを選んでください</h2>
+          <p className="text-slate-500 text-lg">気になるチャンネルをクリックして選択 → 下部でメールアドレスを入力するだけ。</p>
+        </div>
+
         <div className="space-y-20">
           {genres.map(([genre, genreChannels]) => (
             <section key={genre} className="space-y-8">
@@ -173,6 +178,7 @@ export default function Home() {
 
                       <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
 
+                      {/* Selection check */}
                       {selectedChannels.includes(channel.id) && (
                         <div className="absolute top-4 right-4 bg-[#FF0000] text-white w-10 h-10 rounded-full flex items-center justify-center shadow-lg border-4 border-white">
                           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -180,25 +186,39 @@ export default function Home() {
                           </svg>
                         </div>
                       )}
+
+                      {/* Add badge when not selected */}
+                      {!selectedChannels.includes(channel.id) && (
+                        <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm text-[#FF0000] w-10 h-10 rounded-full flex items-center justify-center shadow-lg border-2 border-white opacity-0 group-hover:opacity-100 transition-opacity">
+                          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
+                          </svg>
+                        </div>
+                      )}
+
+                      {/* Genre badge */}
+                      <div className="absolute bottom-3 left-3">
+                        <span className="bg-black/60 backdrop-blur-sm text-white text-[10px] font-bold px-2.5 py-1 rounded-full">
+                          {channel.genre}
+                        </span>
+                      </div>
                     </div>
 
                     {/* Content */}
                     <div className="p-5 space-y-3">
-                      <h3 className="font-bold text-slate-900 group-hover:text-[#FF0000] transition-colors leading-tight">
-                        {channel.name}
-                      </h3>
-
-                      <div className="flex flex-wrap gap-2 text-[10px] font-black uppercase tracking-widest text-[#FF0000]">
+                      <div className="flex items-center justify-between gap-2">
+                        <h3 className="font-bold text-slate-900 group-hover:text-[#FF0000] transition-colors leading-tight">
+                          {channel.name}
+                        </h3>
                         {channel.subscribers && (
-                          <span className="bg-[#FF0000]/5 px-2 py-0.5 rounded">購読者 {channel.subscribers}</span>
-                        )}
-                        {channel.videoCount && channel.videoCount !== 'NA' && (
-                          <span className="bg-slate-100 text-slate-500 px-2 py-0.5 rounded">{channel.videoCount} VIDEO</span>
+                          <span className="text-[10px] font-black text-[#FF0000] bg-[#FF0000]/5 px-2 py-0.5 rounded whitespace-nowrap">
+                            {channel.subscribers}人
+                          </span>
                         )}
                       </div>
 
-                      <p className="text-slate-500 text-sm line-clamp-2 leading-relaxed h-10">
-                        {channel.description}
+                      <p className="text-slate-500 text-sm line-clamp-2 leading-relaxed min-h-[2.5rem]">
+                        {channel.descriptionJa || channel.description}
                       </p>
                     </div>
                   </div>
@@ -209,8 +229,8 @@ export default function Home() {
         </div>
 
         {/* Status Message */}
-        {message && (
-          <div className={`fixed bottom-8 right-8 z-50 px-8 py-5 rounded-2xl shadow-2xl font-black border-2 backdrop-blur-md ${status === 'success' ? 'bg-white border-[#FF0000] text-[#FF0000]' : 'bg-[#FF0000] border-[#FF0000] text-white'
+        {message && status !== 'idle' && (
+          <div className={`fixed top-24 left-1/2 -translate-x-1/2 z-50 px-8 py-5 rounded-2xl shadow-2xl font-black border-2 backdrop-blur-md ${status === 'success' ? 'bg-white border-[#FF0000] text-[#FF0000]' : 'bg-[#FF0000] border-[#FF0000] text-white'
             }`}>
             <div className="flex items-center gap-3 text-lg">
               {status === 'success' ? '🚀' : '⚠️'}
@@ -306,7 +326,7 @@ export default function Home() {
                 </li>
               </ul>
               <button
-                onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                onClick={scrollToChannels}
                 className="w-full bg-slate-100 text-slate-700 py-4 rounded-full font-bold hover:bg-slate-200 transition-all"
               >
                 無料で始める
@@ -342,7 +362,7 @@ export default function Home() {
                 </li>
               </ul>
               <button
-                onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                onClick={scrollToChannels}
                 className="w-full bg-[#FF0000] text-white py-4 rounded-full font-bold hover:bg-[#CC0000] transition-all shadow-lg shadow-[#FF0000]/20"
               >
                 Standardプランに登録
@@ -374,6 +394,44 @@ export default function Home() {
           <p className="mt-12 text-[10px] text-slate-300 uppercase tracking-[0.4em] font-black">&copy; 2026 READTUBE CORE INTELLIGENCE.</p>
         </div>
       </footer>
+
+      {/* Floating CTA Bar — appears when channels are selected */}
+      <div
+        className={`fixed bottom-0 left-0 right-0 z-50 transition-all duration-500 ease-out ${showFloatingBar
+          ? 'translate-y-0 opacity-100'
+          : 'translate-y-full opacity-0 pointer-events-none'
+          }`}
+      >
+        <div className="bg-white/95 backdrop-blur-xl border-t-2 border-[#FF0000]/20 shadow-[0_-8px_32px_rgba(0,0,0,0.1)]">
+          <div className="container mx-auto px-4 py-4">
+            <form onSubmit={handleSubscribe} className="flex flex-col md:flex-row items-center gap-3 max-w-3xl mx-auto">
+              <div className="flex items-center gap-2 text-sm font-bold text-[#FF0000] whitespace-nowrap">
+                <span className="bg-[#FF0000] text-white w-7 h-7 rounded-full flex items-center justify-center text-xs font-black">
+                  {selectedChannels.length}
+                </span>
+                <span className="hidden sm:inline">チャンネル選択中</span>
+              </div>
+              <div className="flex-1 flex gap-2 w-full">
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  placeholder="メールアドレスを入力"
+                  className="flex-1 bg-[#F2F2F2] rounded-full px-5 py-3 outline-none text-base font-medium focus:ring-2 focus:ring-[#FF0000]/20 focus:bg-white transition-all border border-transparent focus:border-[#FF0000]/30"
+                />
+                <button
+                  type="submit"
+                  disabled={status === 'loading'}
+                  className="bg-[#FF0000] text-white px-8 py-3 rounded-full font-bold hover:bg-[#CC0000] transition-all disabled:bg-slate-300 disabled:text-slate-500 active:scale-95 shadow-lg shadow-[#FF0000]/20 whitespace-nowrap"
+                >
+                  {status === 'loading' ? '登録中...' : '無料購読を開始'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
     </div>
   )
 }
