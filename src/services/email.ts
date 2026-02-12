@@ -35,8 +35,12 @@ export async function sendChannelUpdate(
                 `href="${unsubscribeUrl}"`
             );
 
+            const fromField = config.EMAIL_FROM.includes('<')
+                ? config.EMAIL_FROM
+                : `ReadTube Premium <${config.EMAIL_FROM}>`;
+
             const { data, error } = await resend.emails.send({
-                from: `ReadTube Premium <${config.EMAIL_FROM}>`,
+                from: fromField,
                 to: [subscriber.email],
                 subject: subject,
                 html: htmlWithUnsubscribe,
@@ -69,8 +73,12 @@ export async function sendWelcomeEmail(
     }
 
     try {
+        const fromField = config.EMAIL_FROM.includes('<')
+            ? config.EMAIL_FROM
+            : `ReadTube Premium <${config.EMAIL_FROM}>`;
+
         const { data, error } = await resend.emails.send({
-            from: `ReadTube Premium <${config.EMAIL_FROM}>`,
+            from: fromField,
             to: [toEmail],
             subject: subject,
             html: htmlContent,
