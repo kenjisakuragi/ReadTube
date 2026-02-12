@@ -14,6 +14,7 @@ export const ConfigSchema = z.object({
     SUPABASE_URL: z.string().optional(),
     SUPABASE_SERVICE_KEY: z.string().optional(),
     BASE_URL: z.string().default('https://readtube.jp'),
+    RAPIDAPI_KEY: z.string().optional(),
 });
 
 export const config = ConfigSchema.parse(process.env);

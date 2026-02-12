@@ -1,5 +1,5 @@
 # Daily digest workflow
-# Trigger registration
+# RapidAPI integration version
 name: Daily Digest Pipeline
 
 on:
@@ -23,16 +23,7 @@ jobs:
           node-version: '20'
           cache: 'npm'
 
-      - name: Install dependencies (System)
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y ffmpeg python3
-
-      - name: Install yt-dlp and transcript-api
-        run: |
-          python3 -m pip install -U yt-dlp youtube-transcript-api
-
-      - name: Install dependencies (Node)
+      - name: Install dependencies
         run: npm ci
 
       - name: Run Pipeline
@@ -46,4 +37,5 @@ jobs:
           SMTP_USER: ${{ secrets.SMTP_USER }}
           SMTP_PASS: ${{ secrets.SMTP_PASS }}
           BASE_URL: ${{ secrets.BASE_URL }}
+          RAPIDAPI_KEY: ${{ secrets.RAPIDAPI_KEY }}
         run: npx ts-node src/index.ts
