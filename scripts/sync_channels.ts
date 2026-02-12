@@ -27,8 +27,9 @@ async function sync() {
     const finalChannels: any[] = [];
 
     const isWindows = process.platform === 'win32';
-    const ytdlpCmd = isWindows && fs.existsSync(path.resolve(process.cwd(), 'yt-dlp.exe'))
-        ? path.resolve(process.cwd(), 'yt-dlp.exe')
+    const ytdlpPath = path.resolve(process.cwd(), 'bin', 'yt-dlp.exe');
+    const ytdlpCmd = isWindows && fs.existsSync(ytdlpPath)
+        ? ytdlpPath
         : 'yt-dlp';
 
     for (const line of lines) {

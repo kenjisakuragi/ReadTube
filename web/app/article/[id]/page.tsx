@@ -168,28 +168,30 @@ export default function ArticlePage() {
             {/* Article */}
             <article className="pt-24 pb-20 px-4">
                 <div className="max-w-3xl mx-auto">
+                    {/* Hero Thumbnail */}
+                    <div className="w-full aspect-video rounded-2xl overflow-hidden mb-8 bg-slate-100 shadow-lg">
+                        <img
+                            src={`https://img.youtube.com/vi/${article.video_id}/maxresdefault.jpg`}
+                            alt={article.title}
+                            className="w-full h-full object-cover"
+                            onError={(e) => {
+                                (e.target as HTMLImageElement).src = `https://img.youtube.com/vi/${article.video_id}/hqdefault.jpg`
+                            }}
+                        />
+                    </div>
+
                     {/* Meta */}
                     <div className="flex items-center gap-3 mb-6 text-sm text-slate-500">
                         {publishedDate && <time>{publishedDate}</time>}
                         <span>•</span>
-                        <span>AI Generated Report</span>
+                        <span>AI レポート</span>
                     </div>
 
                     {/* Content */}
                     {hasAccess ? (
                         <>
                             <div
-                                className="prose prose-lg prose-slate max-w-none
-                  prose-headings:font-black prose-headings:tracking-tight
-                  prose-h1:text-3xl prose-h1:md:text-4xl prose-h1:text-slate-900 prose-h1:leading-tight prose-h1:mb-8
-                  prose-h2:text-2xl prose-h2:text-slate-800 prose-h2:border-l-4 prose-h2:border-[#FF0000] prose-h2:pl-4 prose-h2:mt-12
-                  prose-h3:text-xl prose-h3:text-slate-700
-                  prose-p:text-slate-600 prose-p:leading-[1.9]
-                  prose-strong:text-slate-900
-                  prose-a:text-[#FF0000] prose-a:no-underline hover:prose-a:underline
-                  prose-hr:border-slate-200 prose-hr:my-10
-                  prose-li:text-slate-600
-                  prose-blockquote:border-[#FF0000] prose-blockquote:bg-[#FF0000]/5 prose-blockquote:py-1 prose-blockquote:rounded-r-lg"
+                                className="article-body"
                                 dangerouslySetInnerHTML={{ __html: marked(article.content || '') as string }}
                             />
 
@@ -218,13 +220,7 @@ export default function ArticlePage() {
                         <>
                             {/* Partial content + Paywall */}
                             <div
-                                className="prose prose-lg prose-slate max-w-none
-                  prose-headings:font-black prose-headings:tracking-tight
-                  prose-h1:text-3xl prose-h1:md:text-4xl prose-h1:text-slate-900 prose-h1:leading-tight prose-h1:mb-8
-                  prose-h2:text-2xl prose-h2:text-slate-800 prose-h2:border-l-4 prose-h2:border-[#FF0000] prose-h2:pl-4 prose-h2:mt-12
-                  prose-p:text-slate-600 prose-p:leading-[1.9]
-                  prose-strong:text-slate-900
-                  prose-hr:border-slate-200"
+                                className="article-body"
                                 dangerouslySetInnerHTML={{
                                     __html: marked(getPreviewContent(article.content || '')) as string
                                 }}
