@@ -64,9 +64,25 @@ async function main() {
             const videoUrl = `https://www.youtube.com/watch?v=${video.id}`;
             const htmlReport = renderEmail(channel.name, video.title, guide, videoUrl);
 
-            await sendChannelUpdate(channel.id, channel.name, video.title, htmlReport);
+            const baseUrl = process.env.BASE_URL;
+            await sendChannelUpdate(channel.id, channel.name, video.title, htmlReport, baseUrl);
 
-            // 4. Update State
+            // 4. Save to Database (Web Content & Logs)
+            console.log(`  - Saving to Database...`);
+
+            // Insert into 'videos' table for the web portal
+            await supabase.from('videos').insert({
+                video_id: video.id,
+                channel_id: channel.id,
+                title: video.title,
+                content: guide, // The full Markdown report
+                transcript: transcript.startsWith('GEMINI_AUDIO_URI') ? null : transcript,
+                summary: guide.substring(0, 500), // Brief excerpt
+                status: 'published',
+                published_at: video.pubDate ? new Date(video.pubDate).toISOString() : new Date().toISOString()
+            });
+
+            // Mark as processed
             await supabase.from('processed_videos').insert({
                 video_id: video.id,
                 channel_id: channel.id,
