@@ -33,7 +33,8 @@ jobs:
           SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
           EMAIL_FROM: ${{ secrets.EMAIL_FROM }}
           SMTP_HOST: ${{ secrets.SMTP_HOST }}
-          SMTP_PORT: ${{ secrets.SMTP_PORT }}
+          SMTP_PORT: ${{ secrets.SMTP_PORT || 587 }}
+          SMTP_SECURE: ${{ secrets.SMTP_SECURE || 'false' }}
           SMTP_USER: ${{ secrets.SMTP_USER }}
           SMTP_PASS: ${{ secrets.SMTP_PASS }}
           BASE_URL: ${{ secrets.BASE_URL }}
