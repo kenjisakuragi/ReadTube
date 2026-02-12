@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from 'react'
 import { supabase } from '@/lib/supabase'
-import channelsData from '../../config/channels.json'
+import channelsData from '@/data/channels.json'
 import { registerUser } from './actions'
 
 interface Channel {

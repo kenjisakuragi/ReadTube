@@ -1,5 +1,5 @@
 import Link from 'next/link';
-import channelsData from '../../data/channels.json';
+import channelsData from '@/data/channels.json';
 
 interface Channel {
     id: string;

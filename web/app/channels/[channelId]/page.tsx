@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { supabase } from '@/lib/supabase'
-import channelsData from '../../../../config/channels.json'
+import channelsData from '@/data/channels.json'
 
 interface VideoArticle {
     id: number

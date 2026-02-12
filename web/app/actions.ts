@@ -2,7 +2,7 @@
 
 import { createClient } from '@supabase/supabase-js'
 import { sendWelcomeEmail } from '@/lib/email'
-import channelsData from '../../config/channels.json'
+import channelsData from '@/data/channels.json'
 
 // Define Channel interface locally since importing from page.tsx might be tricky with 'use server'
 interface Channel {
