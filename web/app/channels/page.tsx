@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useMemo } from 'react'
 import channelsData from '@/data/channels.json'
 import { registerUser } from '@/app/actions'
 
@@ -19,14 +19,39 @@ export default function ChannelsPage() {
     const [email, setEmail] = useState('')
     const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
     const [message, setMessage] = useState('')
+    const [searchQuery, setSearchQuery] = useState('')
+    const [selectedGenre, setSelectedGenre] = useState<string>('all')
 
-    // Group by genre
-    const genres = new Map<string, Channel[]>()
-    channels.forEach(ch => {
-        const list = genres.get(ch.genre) || []
-        list.push(ch)
-        genres.set(ch.genre, list)
-    })
+    // Unique genres
+    const allGenres = useMemo(() => {
+        const set = new Set<string>()
+        channels.forEach(ch => set.add(ch.genre))
+        return Array.from(set)
+    }, [channels])
+
+    // Filtered channels
+    const filteredChannels = useMemo(() => {
+        return channels.filter(ch => {
+            const matchesGenre = selectedGenre === 'all' || ch.genre === selectedGenre
+            const query = searchQuery.toLowerCase()
+            const matchesSearch = !query
+                || ch.name.toLowerCase().includes(query)
+                || (ch.descriptionJa || '').toLowerCase().includes(query)
+                || ch.genre.toLowerCase().includes(query)
+            return matchesGenre && matchesSearch
+        })
+    }, [channels, selectedGenre, searchQuery])
+
+    // Group filtered channels by genre
+    const genres = useMemo(() => {
+        const map = new Map<string, Channel[]>()
+        filteredChannels.forEach(ch => {
+            const list = map.get(ch.genre) || []
+            list.push(ch)
+            map.set(ch.genre, list)
+        })
+        return Array.from(map.entries())
+    }, [filteredChannels])
 
     const handleSubscribe = async (e: React.FormEvent) => {
         e.preventDefault()
@@ -85,7 +110,7 @@ export default function ChannelsPage() {
             <main className="pt-28 pb-20 px-4">
                 <div className="container mx-auto max-w-7xl">
                     {/* Page Header */}
-                    <div className="text-center mb-16">
+                    <div className="text-center mb-12">
                         <h1 className="text-3xl md:text-4xl font-black text-slate-900 mb-4">
                             対象チャンネル
                         </h1>
@@ -95,13 +120,78 @@ export default function ChannelsPage() {
                         </p>
                     </div>
 
+                    {/* Search & Genre Filter */}
+                    <div className="mb-12 space-y-4">
+                        {/* Search Box */}
+                        <div className="max-w-xl mx-auto">
+                            <div className="relative">
+                                <svg className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                                </svg>
+                                <input
+                                    type="text"
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                    placeholder="チャンネル名・キーワードで検索..."
+                                    className="w-full pl-12 pr-4 py-3.5 bg-white border-2 border-slate-100 rounded-2xl outline-none text-base font-medium focus:border-[#FF0000]/30 focus:ring-4 focus:ring-[#FF0000]/5 transition-all placeholder:text-slate-400"
+                                />
+                                {searchQuery && (
+                                    <button
+                                        onClick={() => setSearchQuery('')}
+                                        className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+                                    >
+                                        <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                                        </svg>
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+
+                        {/* Genre Tabs */}
+                        <div className="flex justify-center">
+                            <div className="flex gap-2 overflow-x-auto pb-1">
+                                <button
+                                    onClick={() => setSelectedGenre('all')}
+                                    className={`px-5 py-2.5 rounded-full text-sm font-bold whitespace-nowrap transition-all ${selectedGenre === 'all'
+                                        ? 'bg-[#FF0000] text-white shadow-lg shadow-[#FF0000]/20'
+                                        : 'bg-white text-slate-600 border-2 border-slate-100 hover:border-[#FF0000]/30'
+                                        }`}
+                                >
+                                    すべて
+                                </button>
+                                {allGenres.map(genre => (
+                                    <button
+                                        key={genre}
+                                        onClick={() => setSelectedGenre(genre)}
+                                        className={`px-5 py-2.5 rounded-full text-sm font-bold whitespace-nowrap transition-all ${selectedGenre === genre
+                                            ? 'bg-[#FF0000] text-white shadow-lg shadow-[#FF0000]/20'
+                                            : 'bg-white text-slate-600 border-2 border-slate-100 hover:border-[#FF0000]/30'
+                                            }`}
+                                    >
+                                        {genre}
+                                    </button>
+                                ))}
+                            </div>
+                        </div>
+
+                        {/* Result count */}
+                        {(searchQuery || selectedGenre !== 'all') && (
+                            <p className="text-center text-sm text-slate-400 font-medium">
+                                {filteredChannels.length} チャンネル
+                                {filteredChannels.length === 0 && ' — 条件に一致するチャンネルがありません'}
+                            </p>
+                        )}
+                    </div>
+
                     {/* Channels by Genre */}
                     <div className="space-y-16">
-                        {Array.from(genres.entries()).map(([genre, genreChannels]) => (
+                        {genres.map(([genre, genreChannels]) => (
                             <section key={genre} className="space-y-8">
                                 <div className="flex items-center gap-4">
                                     <h2 className="text-2xl font-black text-slate-900 pl-4 border-l-8 border-[#FF0000]">{genre}</h2>
                                     <div className="flex-1 h-px bg-slate-200"></div>
+                                    <span className="text-sm font-bold text-slate-400">{genreChannels.length} チャンネル</span>
                                 </div>
 
                                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -161,6 +251,21 @@ export default function ChannelsPage() {
                             </section>
                         ))}
                     </div>
+
+                    {/* Empty state */}
+                    {filteredChannels.length === 0 && (
+                        <div className="text-center py-20">
+                            <div className="text-5xl mb-4">🔍</div>
+                            <h3 className="text-xl font-black text-slate-900 mb-2">チャンネルが見つかりません</h3>
+                            <p className="text-slate-500 mb-6">別のキーワードやジャンルで検索してみてください。</p>
+                            <button
+                                onClick={() => { setSearchQuery(''); setSelectedGenre('all') }}
+                                className="text-[#FF0000] font-bold hover:underline"
+                            >
+                                フィルターをリセット
+                            </button>
+                        </div>
+                    )}
                 </div>
             </main>
 
@@ -205,7 +310,7 @@ export default function ChannelsPage() {
                     />
 
                     {/* Modal */}
-                    <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-md p-8 animate-in">
+                    <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-md p-8">
                         {status === 'success' ? (
                             <div className="text-center py-8">
                                 <div className="text-5xl mb-4">🎉</div>
