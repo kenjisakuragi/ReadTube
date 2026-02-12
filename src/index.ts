@@ -35,7 +35,7 @@ async function main() {
         const newVideos = await checkNewVideos(channel.id);
 
         for (const video of newVideos) {
-            /*
+            // Check if already processed
             const { data: existing } = await supabase
                 .from('processed_videos')
                 .select('video_id')
@@ -45,7 +45,6 @@ async function main() {
             if (existing) {
                 continue;
             }
-            */
 
             console.log(`Found new video: ${video.title}`);
 

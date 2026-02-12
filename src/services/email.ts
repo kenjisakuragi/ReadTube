@@ -7,6 +7,9 @@ import { renderWelcomeEmail } from './email_renderer';
 // Use SMTP_PASS as the API Key for Resend SDK
 const resend = config.SMTP_PASS ? new Resend(config.SMTP_PASS) : null;
 
+// Rate limit helper: Resend free tier allows 2 req/sec
+const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
 export async function sendChannelUpdate(
     channelId: string,
     channelName: string,
@@ -51,6 +54,9 @@ export async function sendChannelUpdate(
             } else {
                 console.log(`  > Sent to ${subscriber.email} (ID: ${data?.id})`);
             }
+
+            // Wait 600ms between sends to respect rate limits
+            await delay(600);
         } catch (error) {
             console.error(`  > Unexpected error sending to ${subscriber.email}:`, error);
         }
