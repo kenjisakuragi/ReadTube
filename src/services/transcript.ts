@@ -8,40 +8,41 @@ export async function getTranscript(videoId: string): Promise<string | null> {
         return null;
     }
 
-    console.log(`[Transcript] Fetching from RapidAPI for video: ${videoId}...`);
+    console.log(`[Transcript] Fetching from RapidAPI (youtube-transcript3) for: ${videoId}...`);
 
     try {
-        // Using SocialKit YouTube Transcript API (or similar) on RapidAPI
-        // Endpoint: https://socialkit-youtube-transcript.p.rapidapi.com/transcript
         const options = {
             method: 'GET',
-            url: 'https://socialkit-youtube-transcript.p.rapidapi.com/transcript', // standard endpoint
-            params: { videoId: videoId },
+            url: 'https://youtube-transcript3.p.rapidapi.com/api/transcript-with-videoid',
+            params: {
+                videoId: videoId,
+                flat_text: 'true',
+                lang: 'en' // Default to English as the source content is mostly English
+            },
             headers: {
                 'x-rapidapi-key': config.RAPIDAPI_KEY,
-                'x-rapidapi-host': 'socialkit-youtube-transcript.p.rapidapi.com'
+                'x-rapidapi-host': 'youtube-transcript3.p.rapidapi.com'
             }
         };
 
         const response = await axios.request(options);
 
-        // Standard SocialKit response format is an array of segments or a joined text
-        // [{text: "..."}, {text: "..."}] or {transcript: "..."}
-        if (response.data && Array.isArray(response.data)) {
-            const fullText = response.data.map((segment: any) => segment.text).join(' ');
-            console.log(`  > Successfully retrieved transcript (${fullText.length} chars)`);
-            return fullText;
-        } else if (response.data && typeof response.data === 'string') {
-            return response.data;
-        } else if (response.data && response.data.transcript) {
-            return response.data.transcript;
+        // This API with flat_text=true typically returns { transcript: "...", ... } 
+        // or just the string depending on version. Let's handle both.
+        if (response.data) {
+            const transcript = response.data.transcript || response.data;
+            if (typeof transcript === 'string' && transcript.length > 50) {
+                console.log(`  > Successfully retrieved transcript (${transcript.length} chars)`);
+                return transcript;
+            }
         }
 
         console.error("  > Unexpected response format from RapidAPI:", response.data);
         return null;
 
     } catch (error: any) {
-        console.error(`  > RapidAPI Error for ${videoId}:`, error.response?.data?.message || error.message);
+        const errorMsg = error.response?.data?.message || error.message;
+        console.error(`  > RapidAPI Error for ${videoId}:`, errorMsg);
         return null;
     }
 }
