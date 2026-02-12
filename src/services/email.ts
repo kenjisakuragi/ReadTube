@@ -5,12 +5,16 @@ import { renderWelcomeEmail } from './email_renderer';
 
 const transporter = config.SMTP_HOST ? nodemailer.createTransport({
     host: config.SMTP_HOST,
-    port: config.SMTP_PORT,
-    secure: config.SMTP_SECURE,
+    port: Number(config.SMTP_PORT),
+    secure: Number(config.SMTP_PORT) === 465, // True for 465, false for 587 (STARTTLS)
     auth: {
         user: config.SMTP_USER,
         pass: config.SMTP_PASS,
     },
+    // Explicitly handle TLS for port 587
+    tls: {
+        rejectUnauthorized: false
+    }
 }) : null;
 
 export async function sendChannelUpdate(
