@@ -220,6 +220,138 @@ export default function Home() {
         )}
       </main>
 
+      {/* Before / After */}
+      <section className="bg-white py-24 px-4 border-t border-slate-200">
+        <div className="container mx-auto max-w-4xl">
+          <h2 className="text-3xl font-black text-center text-slate-900 mb-16">
+            30分の英語動画が、<span className="text-[#FF0000]">5分の日本語レポート</span>に。
+          </h2>
+          <div className="grid md:grid-cols-2 gap-8">
+            <div className="bg-slate-50 rounded-2xl p-8 border border-slate-200">
+              <div className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-4">Before</div>
+              <ul className="space-y-4 text-slate-600">
+                <li className="flex items-start gap-3">
+                  <span className="text-red-400 mt-0.5">✕</span>
+                  <span>30分の英語動画を全部見る必要がある</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="text-red-400 mt-0.5">✕</span>
+                  <span>専門用語が多くて理解に時間がかかる</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="text-red-400 mt-0.5">✕</span>
+                  <span>複数チャンネルのチェックに数時間</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="text-red-400 mt-0.5">✕</span>
+                  <span>結局、見ないまま溜まっていく</span>
+                </li>
+              </ul>
+            </div>
+            <div className="bg-[#FF0000]/5 rounded-2xl p-8 border-2 border-[#FF0000]/20">
+              <div className="text-sm font-bold text-[#FF0000] uppercase tracking-widest mb-4">After — ReadTube</div>
+              <ul className="space-y-4 text-slate-700">
+                <li className="flex items-start gap-3">
+                  <span className="text-[#FF0000] mt-0.5">✓</span>
+                  <span><strong>5分で要点を把握</strong>できる日本語レポート</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="text-[#FF0000] mt-0.5">✓</span>
+                  <span>AIが<strong>専門用語をわかりやすく</strong>解説</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="text-[#FF0000] mt-0.5">✓</span>
+                  <span><strong>毎朝1通のダイジェスト</strong>で全チャンネルを網羅</span>
+                </li>
+                <li className="flex items-start gap-3">
+                  <span className="text-[#FF0000] mt-0.5">✓</span>
+                  <span>通勤電車で<strong>サクッと読める</strong></span>
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Pricing Section */}
+      <section id="pricing" className="py-24 px-4 bg-[#FAFAFA]">
+        <div className="container mx-auto max-w-4xl text-center">
+          <h2 className="text-3xl font-black text-slate-900 mb-4">シンプルな料金プラン</h2>
+          <p className="text-slate-500 mb-16 text-lg">まずは無料で体験。気に入ったらアップグレード。</p>
+
+          <div className="grid md:grid-cols-2 gap-8 max-w-3xl mx-auto">
+            {/* Free Plan */}
+            <div className="bg-white rounded-3xl border-2 border-slate-200 p-8 text-left">
+              <div className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-2">Free</div>
+              <div className="flex items-baseline gap-1 mb-6">
+                <span className="text-4xl font-black text-slate-900">¥0</span>
+                <span className="text-slate-400 font-medium">/月</span>
+              </div>
+              <ul className="space-y-3 text-slate-600 mb-8">
+                <li className="flex items-center gap-3">
+                  <span className="text-[#FF0000] font-bold">✓</span>
+                  <span>月3本まで全文閲覧</span>
+                </li>
+                <li className="flex items-center gap-3">
+                  <span className="text-[#FF0000] font-bold">✓</span>
+                  <span>全チャンネル対象</span>
+                </li>
+                <li className="flex items-center gap-3">
+                  <span className="text-slate-300 font-bold">—</span>
+                  <span className="text-slate-400">デイリーダイジェストメール</span>
+                </li>
+                <li className="flex items-center gap-3">
+                  <span className="text-slate-300 font-bold">—</span>
+                  <span className="text-slate-400">過去アーカイブの閲覧</span>
+                </li>
+              </ul>
+              <button
+                onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                className="w-full bg-slate-100 text-slate-700 py-4 rounded-full font-bold hover:bg-slate-200 transition-all"
+              >
+                無料で始める
+              </button>
+            </div>
+
+            {/* Standard Plan */}
+            <div className="bg-white rounded-3xl border-2 border-[#FF0000] p-8 text-left relative shadow-xl shadow-[#FF0000]/5">
+              <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-[#FF0000] text-white text-xs font-black px-4 py-1.5 rounded-full uppercase tracking-widest">
+                おすすめ
+              </div>
+              <div className="text-sm font-bold text-[#FF0000] uppercase tracking-widest mb-2">Standard</div>
+              <div className="flex items-baseline gap-1 mb-6">
+                <span className="text-4xl font-black text-slate-900">¥980</span>
+                <span className="text-slate-400 font-medium">/月</span>
+              </div>
+              <ul className="space-y-3 text-slate-700 mb-8">
+                <li className="flex items-center gap-3">
+                  <span className="text-[#FF0000] font-bold">✓</span>
+                  <span><strong>全記事を無制限に閲覧</strong></span>
+                </li>
+                <li className="flex items-center gap-3">
+                  <span className="text-[#FF0000] font-bold">✓</span>
+                  <span>全チャンネル対象</span>
+                </li>
+                <li className="flex items-center gap-3">
+                  <span className="text-[#FF0000] font-bold">✓</span>
+                  <span><strong>毎日ダイジェストメール配信</strong></span>
+                </li>
+                <li className="flex items-center gap-3">
+                  <span className="text-[#FF0000] font-bold">✓</span>
+                  <span><strong>過去アーカイブの閲覧</strong></span>
+                </li>
+              </ul>
+              <button
+                onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
+                className="w-full bg-[#FF0000] text-white py-4 rounded-full font-bold hover:bg-[#CC0000] transition-all shadow-lg shadow-[#FF0000]/20"
+              >
+                Standardプランに登録
+              </button>
+            </div>
+          </div>
+        </div>
+      </section>
+
       <footer className="bg-white py-20 text-center border-t border-slate-200">
         <div className="container mx-auto px-4">
           <div className="flex items-center justify-center gap-1 mb-8">
@@ -237,7 +369,7 @@ export default function Home() {
             <span className="hidden md:inline">•</span>
             <span>いつでも配信停止可能</span>
             <span className="hidden md:inline">•</span>
-            <span>AIによる自動要約レポート</span>
+            <a href="#pricing" className="hover:text-[#FF0000] transition-colors">料金プラン</a>
           </div>
           <p className="mt-12 text-[10px] text-slate-300 uppercase tracking-[0.4em] font-black">&copy; 2026 READTUBE CORE INTELLIGENCE.</p>
         </div>
