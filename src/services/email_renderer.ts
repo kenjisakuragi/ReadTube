@@ -189,6 +189,11 @@ export function renderEmail(
                     <a href="${videoUrl}" class="cta-button">元の動画で内容を確認する</a>
                 </div>
                 ` : ''}
+
+                <div style="text-align: center; margin-top: 40px; padding-top: 30px; border-top: 1px solid #E2E8F0;">
+                    <p style="font-size: 14px; color: #718096; margin-bottom: 12px;">解説してほしいチャンネルはありますか？</p>
+                    <a href="https://forms.gle/Vus1fFKvrSD78bn87" style="display: inline-block; background-color: #1A202C; color: #FFFFFF; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: 700; font-size: 14px;">📩 チャンネルをリクエスト</a>
+                </div>
             </div>
 
             <div class="footer">
@@ -245,6 +250,11 @@ export function renderWelcomeEmail(
                 
                 <div style="text-align: center; margin-top: 40px;">
                     <a href="${unsubscribeUrl}" class="cta-button" style="background-color: #fff; color: #2D3748 !important; border: 1px solid #CBD5E0;">配信設定を確認する</a>
+                </div>
+
+                <div style="text-align: center; margin-top: 30px; padding-top: 25px; border-top: 1px solid #E2E8F0;">
+                    <p style="font-size: 14px; color: #718096; margin-bottom: 12px;">解説してほしいチャンネルはありますか？</p>
+                    <a href="https://forms.gle/Vus1fFKvrSD78bn87" style="display: inline-block; background-color: #1A202C; color: #FFFFFF; padding: 12px 24px; border-radius: 6px; text-decoration: none; font-weight: 700; font-size: 14px;">📩 チャンネルをリクエスト</a>
                 </div>
             </div>
 

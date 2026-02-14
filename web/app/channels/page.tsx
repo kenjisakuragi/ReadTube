@@ -114,10 +114,18 @@ export default function ChannelsPage() {
                         <h1 className="text-3xl md:text-4xl font-black text-slate-900 mb-4">
                             対象チャンネル
                         </h1>
-                        <p className="text-lg text-slate-500 max-w-2xl mx-auto">
+                        <p className="text-lg text-slate-500 max-w-2xl mx-auto mb-6">
                             世界トップクラスのYouTubeチャンネルをAIが毎日解析。<br />
                             気になるチャンネルを購読して、日本語レポートを受け取りましょう。
                         </p>
+                        <a
+                            href="https://forms.gle/Vus1fFKvrSD78bn87"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="inline-flex items-center gap-2 bg-slate-900 text-white px-6 py-3 rounded-full text-sm font-bold hover:bg-slate-700 transition-all"
+                        >
+                            📩 翻訳してほしいチャンネルをリクエスト
+                        </a>
                     </div>
 
                     {/* Search & Genre Filter */}

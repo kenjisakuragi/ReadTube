@@ -203,6 +203,8 @@ export default function DashboardPage() {
                     <div className="flex justify-center gap-6 text-sm text-slate-400 font-medium">
                         <a href="/" className="hover:text-[#FF0000] transition-colors">トップ</a>
                         <span>•</span>
+                        <a href="https://forms.gle/Vus1fFKvrSD78bn87" target="_blank" rel="noopener noreferrer" className="hover:text-[#FF0000] transition-colors">チャンネルリクエスト</a>
+                        <span>•</span>
                         <a href="/privacy" className="hover:text-[#FF0000] transition-colors">プライバシーポリシー</a>
                         <span>•</span>
                         <span>© 2026 ReadTube</span>

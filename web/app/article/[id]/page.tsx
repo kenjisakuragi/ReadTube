@@ -29,6 +29,31 @@ export default function ArticlePage() {
     const [loading, setLoading] = useState(true)
     const [hasAccess, setHasAccess] = useState(false)
     const [freeArticlesUsed, setFreeArticlesUsed] = useState(0)
+    const [upgradeEmail, setUpgradeEmail] = useState('')
+    const [upgradeStatus, setUpgradeStatus] = useState<'idle' | 'loading' | 'error'>('idle')
+    const [upgradeError, setUpgradeError] = useState('')
+
+    const handleUpgrade = async (e: React.FormEvent) => {
+        e.preventDefault()
+        setUpgradeStatus('loading')
+        setUpgradeError('')
+        try {
+            const res = await fetch('/api/stripe/checkout', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: upgradeEmail, plan: 'standard' }),
+            })
+            const data = await res.json()
+            if (data.url) {
+                window.location.href = data.url
+            } else {
+                throw new Error(data.error || 'エラーが発生しました')
+            }
+        } catch (err: any) {
+            setUpgradeStatus('error')
+            setUpgradeError(err.message)
+        }
+    }
 
     useEffect(() => {
         async function loadArticle() {
@@ -253,20 +278,35 @@ export default function ArticlePage() {
                                     すべての記事を無制限に読むには、Standardプラン（月¥980）をご利用ください。
                                 </p>
 
-                                <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                                    <a
-                                        href="/"
-                                        className="bg-[#FF0000] text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-[#CC0000] transition-all shadow-lg shadow-[#FF0000]/20"
+                                <form onSubmit={handleUpgrade} className="max-w-sm mx-auto space-y-3 mb-6">
+                                    <input
+                                        type="email"
+                                        value={upgradeEmail}
+                                        onChange={(e) => setUpgradeEmail(e.target.value)}
+                                        required
+                                        placeholder="メールアドレスを入力"
+                                        className="w-full px-5 py-4 bg-[#F2F2F2] rounded-2xl outline-none text-base font-medium focus:ring-2 focus:ring-[#FF0000]/20 focus:bg-white transition-all border border-transparent focus:border-[#FF0000]/30"
+                                    />
+                                    <button
+                                        type="submit"
+                                        disabled={upgradeStatus === 'loading'}
+                                        className="w-full bg-[#FF0000] text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-[#CC0000] transition-all shadow-lg shadow-[#FF0000]/20 disabled:bg-slate-300 disabled:shadow-none"
                                     >
-                                        Standardプランに登録 — ¥980/月
-                                    </a>
-                                    <a
-                                        href="/"
-                                        className="bg-slate-100 text-slate-700 px-8 py-4 rounded-full font-bold text-lg hover:bg-slate-200 transition-all"
-                                    >
-                                        無料で登録する
-                                    </a>
-                                </div>
+                                        {upgradeStatus === 'loading' ? 'Stripeに接続中...' : 'Standardプランに登録 — ¥980/月'}
+                                    </button>
+                                </form>
+
+                                {upgradeError && (
+                                    <p className="text-sm font-bold text-[#FF0000] mb-4">{upgradeError}</p>
+                                )}
+
+                                <a
+                                    href="/"
+                                    className="inline-block bg-slate-100 text-slate-700 px-8 py-3 rounded-full font-bold hover:bg-slate-200 transition-all"
+                                >
+                                    無料で登録する
+                                </a>
+                                <p className="text-xs text-slate-400 mt-4">いつでもキャンセル可能 · Stripeによる安全な決済</p>
                             </div>
                         </>
                     )}
@@ -285,6 +325,10 @@ export default function ArticlePage() {
                         <span className="text-lg font-black tracking-tighter text-slate-900">ReadTube</span>
                     </a>
                     <div className="flex justify-center gap-6 text-sm text-slate-400 font-medium">
+                        <a href="/" className="hover:text-[#FF0000] transition-colors">トップ</a>
+                        <span>•</span>
+                        <a href="https://forms.gle/Vus1fFKvrSD78bn87" target="_blank" rel="noopener noreferrer" className="hover:text-[#FF0000] transition-colors">チャンネルリクエスト</a>
+                        <span>•</span>
                         <a href="/privacy" className="hover:text-[#FF0000] transition-colors">プライバシーポリシー</a>
                         <span>•</span>
                         <span>© 2026 ReadTube</span>

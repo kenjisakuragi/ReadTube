@@ -20,6 +20,32 @@ export default function Home() {
   const [email, setEmail] = useState('')
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
   const [message, setMessage] = useState('')
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false)
+  const [upgradeEmail, setUpgradeEmail] = useState('')
+  const [upgradeStatus, setUpgradeStatus] = useState<'idle' | 'loading' | 'error'>('idle')
+  const [upgradeError, setUpgradeError] = useState('')
+
+  const handleUpgrade = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setUpgradeStatus('loading')
+    setUpgradeError('')
+    try {
+      const res = await fetch('/api/stripe/checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: upgradeEmail, plan: 'standard' }),
+      })
+      const data = await res.json()
+      if (data.url) {
+        window.location.href = data.url
+      } else {
+        throw new Error(data.error || 'エラーが発生しました')
+      }
+    } catch (err: any) {
+      setUpgradeStatus('error')
+      setUpgradeError(err.message)
+    }
+  }
 
   const channels = channelsData as Channel[]
 
@@ -127,7 +153,15 @@ export default function Home() {
       <main id="channels" className="container mx-auto px-4 py-20 max-w-7xl">
         <div className="text-center mb-16">
           <h2 className="text-3xl font-black text-slate-900 mb-3">対象チャンネル</h2>
-          <p className="text-slate-500 text-lg">気になるチャンネルの「購読する」ボタンをクリックするだけ。</p>
+          <p className="text-slate-500 text-lg mb-6">気になるチャンネルの「購読する」ボタンをクリックするだけ。</p>
+          <a
+            href="https://forms.gle/Vus1fFKvrSD78bn87"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-2 bg-slate-900 text-white px-6 py-3 rounded-full text-sm font-bold hover:bg-slate-700 transition-all"
+          >
+            📩 翻訳してほしいチャンネルをリクエスト
+          </a>
         </div>
 
         <div className="space-y-20">
@@ -321,7 +355,7 @@ export default function Home() {
                 </li>
               </ul>
               <button
-                onClick={scrollToChannels}
+                onClick={() => setShowUpgradeModal(true)}
                 className="w-full bg-[#FF0000] text-white py-4 rounded-full font-bold hover:bg-[#CC0000] transition-all shadow-lg shadow-[#FF0000]/20"
               >
                 Standardプランに登録
@@ -342,6 +376,16 @@ export default function Home() {
             <span className="text-2xl font-black tracking-tighter text-slate-900" style={{ fontFamily: '"YouTube Sans", sans-serif' }}>
               ReadTube
             </span>
+          </div>
+          <div className="mb-8">
+            <a
+              href="https://forms.gle/Vus1fFKvrSD78bn87"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-2 bg-slate-100 text-slate-700 px-6 py-3 rounded-full text-sm font-bold hover:bg-slate-200 transition-all"
+            >
+              📩 翻訳してほしいチャンネルをリクエスト
+            </a>
           </div>
           <div className="flex flex-col md:flex-row justify-center items-center gap-4 md:gap-8 text-sm font-bold text-slate-400">
             <a href="/privacy" className="hover:text-[#FF0000] transition-colors">プライバシーポリシー</a>
@@ -443,6 +487,78 @@ export default function Home() {
                 </p>
               </>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Stripe Upgrade Modal */}
+      {showUpgradeModal && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center px-4">
+          <div
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            onClick={() => {
+              if (upgradeStatus !== 'loading') {
+                setShowUpgradeModal(false)
+                setUpgradeEmail('')
+                setUpgradeStatus('idle')
+                setUpgradeError('')
+              }
+            }}
+          />
+          <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-md p-8">
+            <button
+              onClick={() => {
+                setShowUpgradeModal(false)
+                setUpgradeEmail('')
+                setUpgradeStatus('idle')
+                setUpgradeError('')
+              }}
+              className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 transition-colors"
+            >
+              <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+
+            <div className="text-center mb-6">
+              <div className="inline-flex items-center gap-2 bg-[#FF0000]/10 text-[#FF0000] px-4 py-1.5 rounded-full text-sm font-bold mb-4">
+                ⚡ Standardプラン
+              </div>
+              <h3 className="text-xl font-black text-slate-900">¥980/月 で全記事を無制限に</h3>
+              <p className="text-sm text-slate-500 mt-2">Stripeの安全な決済画面に遷移します</p>
+            </div>
+
+            <form onSubmit={handleUpgrade} className="space-y-4">
+              <input
+                type="email"
+                value={upgradeEmail}
+                onChange={(e) => setUpgradeEmail(e.target.value)}
+                required
+                placeholder="登録済みのメールアドレスを入力"
+                className="w-full px-5 py-4 bg-[#F2F2F2] rounded-2xl outline-none text-base font-medium focus:ring-2 focus:ring-[#FF0000]/20 focus:bg-white transition-all border border-transparent focus:border-[#FF0000]/30"
+              />
+              <button
+                type="submit"
+                disabled={upgradeStatus === 'loading'}
+                className="w-full bg-[#FF0000] text-white py-4 rounded-full font-bold text-lg hover:bg-[#CC0000] transition-all shadow-lg shadow-[#FF0000]/20 active:scale-95 disabled:bg-slate-300 disabled:shadow-none"
+              >
+                {upgradeStatus === 'loading' ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                    </svg>
+                    Stripeに接続中...
+                  </span>
+                ) : '決済画面へ進む →'}
+              </button>
+            </form>
+
+            {upgradeError && (
+              <p className="mt-4 text-center text-sm font-bold text-[#FF0000]">{upgradeError}</p>
+            )}
+
+            <p className="text-center text-xs text-slate-400 mt-4">いつでもキャンセル可能 · Stripeによる安全な決済</p>
           </div>
         </div>
       )}
