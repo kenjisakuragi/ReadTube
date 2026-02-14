@@ -10,6 +10,7 @@ interface VideoArticle {
     channel_id: string
     title: string
     summary: string
+    content: string
     published_at: string
 }
 
@@ -31,7 +32,7 @@ export default function DashboardPage() {
         async function load() {
             let query = supabase
                 .from('videos')
-                .select('id, video_id, channel_id, title, summary, published_at')
+                .select('id, video_id, channel_id, title, summary, content, published_at')
                 .order('published_at', { ascending: false })
                 .limit(50)
 
@@ -52,6 +53,15 @@ export default function DashboardPage() {
 
     const getChannelGenre = (channelId: string) => {
         return channels.find(ch => ch.id === channelId)?.genre || ''
+    }
+
+    // Extract Japanese title from the AI-generated markdown content
+    const getJaTitle = (article: VideoArticle): string => {
+        if (article.content) {
+            const match = article.content.match(/^#\s+(.+)$/m)
+            if (match) return match[1]
+        }
+        return article.title
     }
 
     // Group articles by date
@@ -170,7 +180,7 @@ export default function DashboardPage() {
                                                             </span>
                                                         </div>
                                                         <h3 className="text-lg font-bold text-slate-900 group-hover:text-[#FF0000] transition-colors leading-snug mb-2">
-                                                            {article.title}
+                                                            {getJaTitle(article)}
                                                         </h3>
                                                         <p className="text-sm text-slate-500 line-clamp-2 leading-relaxed">
                                                             {article.summary?.substring(0, 200)}...

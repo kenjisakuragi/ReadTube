@@ -16,6 +16,7 @@ interface VideoArticle {
     status: string
     published_at: string
     created_at: string
+    title_ja?: string
 }
 
 export default function ArticlePage() {
@@ -44,6 +45,12 @@ export default function ArticlePage() {
             }
 
             setArticle(data)
+
+            // Extract Japanese title from content
+            const jaMatch = data.content?.match(/^#\s+(.+)$/m)
+            if (jaMatch) {
+                data.title_ja = jaMatch[1]
+            }
 
             // Check access
             if (token) {
@@ -172,7 +179,7 @@ export default function ArticlePage() {
                     <div className="w-full aspect-video rounded-2xl overflow-hidden mb-8 bg-slate-100 shadow-lg">
                         <img
                             src={`https://img.youtube.com/vi/${article.video_id}/maxresdefault.jpg`}
-                            alt={article.title}
+                            alt={article.title_ja || article.title}
                             className="w-full h-full object-cover"
                             onError={(e) => {
                                 (e.target as HTMLImageElement).src = `https://img.youtube.com/vi/${article.video_id}/hqdefault.jpg`
@@ -204,7 +211,7 @@ export default function ArticlePage() {
                                 </div>
                                 <div className="flex-1">
                                     <p className="text-sm text-slate-500 font-medium">元の動画を見る</p>
-                                    <p className="font-bold text-slate-900">{article.title}</p>
+                                    <p className="font-bold text-slate-900">{article.title_ja || article.title}</p>
                                 </div>
                                 <a
                                     href={videoUrl}

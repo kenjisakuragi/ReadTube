@@ -10,6 +10,7 @@ interface VideoArticle {
     channel_id: string
     title: string
     summary: string
+    content: string
     published_at: string
 }
 
@@ -33,7 +34,7 @@ export default function ChannelArticlesPage({ params }: { params: Promise<{ chan
 
             const { data } = await supabase
                 .from('videos')
-                .select('id, video_id, channel_id, title, summary, published_at')
+                .select('id, video_id, channel_id, title, summary, content, published_at')
                 .eq('channel_id', resolvedParams.channelId)
                 .order('published_at', { ascending: false })
                 .limit(50)
@@ -45,6 +46,14 @@ export default function ChannelArticlesPage({ params }: { params: Promise<{ chan
     }, [params])
 
     const channel = channels.find(ch => ch.id === channelId)
+
+    const getJaTitle = (article: VideoArticle): string => {
+        if (article.content) {
+            const match = article.content.match(/^#\s+(.+)$/m)
+            if (match) return match[1]
+        }
+        return article.title
+    }
 
     if (loading) {
         return (
@@ -100,7 +109,7 @@ export default function ChannelArticlesPage({ params }: { params: Promise<{ chan
                                     <div className="flex items-start justify-between gap-4">
                                         <div className="flex-1">
                                             <h2 className="text-lg font-bold text-slate-900 group-hover:text-[#FF0000] transition-colors leading-snug mb-2">
-                                                {article.title}
+                                                {getJaTitle(article)}
                                             </h2>
                                             <p className="text-sm text-slate-500 line-clamp-2 leading-relaxed">
                                                 {article.summary?.substring(0, 150)}...
