@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo, useEffect } from 'react'
+import { useState, useMemo } from 'react'
 import channelsData from '@/data/channels.json'
 import { registerUser } from './actions'
 
@@ -16,11 +16,10 @@ interface Channel {
 }
 
 export default function Home() {
+  const [subscribingChannel, setSubscribingChannel] = useState<string | null>(null)
   const [email, setEmail] = useState('')
-  const [selectedChannels, setSelectedChannels] = useState<string[]>([])
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
   const [message, setMessage] = useState('')
-  const [showFloatingBar, setShowFloatingBar] = useState(false)
 
   const channels = channelsData as Channel[]
 
@@ -35,53 +34,38 @@ export default function Home() {
     return Array.from(map.entries())
   }, [channels])
 
-  // Show/hide floating bar based on selection
-  useEffect(() => {
-    if (selectedChannels.length > 0) {
-      setShowFloatingBar(true)
-    } else {
-      setShowFloatingBar(false)
-    }
-  }, [selectedChannels])
+  const scrollToChannels = () => {
+    document.getElementById('channels')?.scrollIntoView({ behavior: 'smooth' })
+  }
+
+  const channelName = subscribingChannel
+    ? channels.find(ch => ch.id === subscribingChannel)?.name
+    : ''
 
   const handleSubscribe = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (selectedChannels.length === 0) {
-      setMessage('購読するチャンネルを1つ以上選択してください。')
-      setStatus('error')
-      return
-    }
+    if (!subscribingChannel || !email) return
 
     setStatus('loading')
     setMessage('')
 
     try {
-      const result = await registerUser(email, selectedChannels)
-
+      const result = await registerUser(email, [subscribingChannel])
       if (!result.success) {
         throw new Error(result.message || '登録処理に失敗しました。')
       }
-
       setStatus('success')
-      setMessage('登録完了！登録確認メールをお送りしました。')
-      setEmail('')
-      setSelectedChannels([])
+      setMessage('登録完了！確認メールをお送りしました。')
+      setTimeout(() => {
+        setSubscribingChannel(null)
+        setEmail('')
+        setStatus('idle')
+        setMessage('')
+      }, 3000)
     } catch (error: any) {
       setStatus('error')
       setMessage(error.message || '登録に失敗しました。')
     }
-  }
-
-  const toggleChannel = (channelId: string) => {
-    setSelectedChannels(prev =>
-      prev.includes(channelId)
-        ? prev.filter(id => id !== channelId)
-        : [...prev, channelId]
-    )
-  }
-
-  const scrollToChannels = () => {
-    document.getElementById('channels')?.scrollIntoView({ behavior: 'smooth' })
   }
 
   return (
@@ -108,7 +92,7 @@ export default function Home() {
         </div>
       </header>
 
-      {/* Hero Section — No email input */}
+      {/* Hero Section */}
       <section className="pt-40 pb-20 px-4 bg-white">
         <div className="container mx-auto text-center max-w-3xl">
           <div className="inline-flex items-center gap-2 bg-[#FF0000]/5 text-[#FF0000] px-4 py-1.5 rounded-full text-sm font-bold mb-8">
@@ -142,8 +126,8 @@ export default function Home() {
       {/* Channels Grid */}
       <main id="channels" className="container mx-auto px-4 py-20 max-w-7xl">
         <div className="text-center mb-16">
-          <h2 className="text-3xl font-black text-slate-900 mb-3">購読するチャンネルを選んでください</h2>
-          <p className="text-slate-500 text-lg">気になるチャンネルをクリックして選択 → 下部でメールアドレスを入力するだけ。</p>
+          <h2 className="text-3xl font-black text-slate-900 mb-3">対象チャンネル</h2>
+          <p className="text-slate-500 text-lg">気になるチャンネルの「購読する」ボタンをクリックするだけ。</p>
         </div>
 
         <div className="space-y-20">
@@ -158,11 +142,7 @@ export default function Home() {
                 {genreChannels.map(channel => (
                   <div
                     key={channel.id}
-                    onClick={() => toggleChannel(channel.id)}
-                    className={`group relative bg-white border-2 rounded-2xl overflow-hidden cursor-pointer transition-all duration-300 hover:shadow-xl ${selectedChannels.includes(channel.id)
-                      ? 'border-[#FF0000] ring-4 ring-[#FF0000]/5'
-                      : 'border-slate-100'
-                      }`}
+                    className="group bg-white border-2 border-slate-100 rounded-2xl overflow-hidden hover:shadow-xl hover:border-slate-200 transition-all duration-300"
                   >
                     {/* Thumbnail */}
                     <div className="aspect-[16/9] relative overflow-hidden bg-slate-100">
@@ -176,29 +156,11 @@ export default function Home() {
                         <div className="w-full h-full flex items-center justify-center text-4xl">📚</div>
                       )}
 
-                      <div className="absolute inset-0 bg-gradient-to-t from-black/20 to-transparent"></div>
-
-                      {/* Selection check */}
-                      {selectedChannels.includes(channel.id) && (
-                        <div className="absolute top-4 right-4 bg-[#FF0000] text-white w-10 h-10 rounded-full flex items-center justify-center shadow-lg border-4 border-white">
-                          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="3" d="M5 13l4 4L19 7"></path>
-                          </svg>
-                        </div>
-                      )}
-
-                      {/* Add badge when not selected */}
-                      {!selectedChannels.includes(channel.id) && (
-                        <div className="absolute top-4 right-4 bg-white/90 backdrop-blur-sm text-[#FF0000] w-10 h-10 rounded-full flex items-center justify-center shadow-lg border-2 border-white opacity-0 group-hover:opacity-100 transition-opacity">
-                          <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 4v16m8-8H4" />
-                          </svg>
-                        </div>
-                      )}
+                      <div className="absolute inset-0 bg-gradient-to-t from-black/30 to-transparent"></div>
 
                       {/* Genre badge */}
-                      <div className="absolute bottom-3 left-3">
-                        <span className="bg-black/60 backdrop-blur-sm text-white text-[10px] font-bold px-2.5 py-1 rounded-full">
+                      <div className="absolute top-3 left-3">
+                        <span className="bg-[#FF0000] text-white text-[10px] font-black uppercase tracking-widest px-3 py-1 rounded-full shadow-lg">
                           {channel.genre}
                         </span>
                       </div>
@@ -220,6 +182,14 @@ export default function Home() {
                       <p className="text-slate-500 text-sm line-clamp-2 leading-relaxed min-h-[2.5rem]">
                         {channel.descriptionJa || channel.description}
                       </p>
+
+                      {/* Subscribe Button */}
+                      <button
+                        onClick={() => setSubscribingChannel(channel.id)}
+                        className="w-full mt-2 bg-[#FF0000] text-white py-3 rounded-full text-sm font-bold hover:bg-[#CC0000] transition-all shadow-lg shadow-[#FF0000]/20 active:scale-95"
+                      >
+                        ＋ 購読する
+                      </button>
                     </div>
                   </div>
                 ))}
@@ -227,17 +197,6 @@ export default function Home() {
             </section>
           ))}
         </div>
-
-        {/* Status Message */}
-        {message && status !== 'idle' && (
-          <div className={`fixed top-24 left-1/2 -translate-x-1/2 z-50 px-8 py-5 rounded-2xl shadow-2xl font-black border-2 backdrop-blur-md ${status === 'success' ? 'bg-white border-[#FF0000] text-[#FF0000]' : 'bg-[#FF0000] border-[#FF0000] text-white'
-            }`}>
-            <div className="flex items-center gap-3 text-lg">
-              {status === 'success' ? '🚀' : '⚠️'}
-              {message}
-            </div>
-          </div>
-        )}
       </main>
 
       {/* Before / After */}
@@ -395,43 +354,98 @@ export default function Home() {
         </div>
       </footer>
 
-      {/* Floating CTA Bar — appears when channels are selected */}
-      <div
-        className={`fixed bottom-0 left-0 right-0 z-50 transition-all duration-500 ease-out ${showFloatingBar
-          ? 'translate-y-0 opacity-100'
-          : 'translate-y-full opacity-0 pointer-events-none'
-          }`}
-      >
-        <div className="bg-white/95 backdrop-blur-xl border-t-2 border-[#FF0000]/20 shadow-[0_-8px_32px_rgba(0,0,0,0.1)]">
-          <div className="container mx-auto px-4 py-4">
-            <form onSubmit={handleSubscribe} className="flex flex-col md:flex-row items-center gap-3 max-w-3xl mx-auto">
-              <div className="flex items-center gap-2 text-sm font-bold text-[#FF0000] whitespace-nowrap">
-                <span className="bg-[#FF0000] text-white w-7 h-7 rounded-full flex items-center justify-center text-xs font-black">
-                  {selectedChannels.length}
-                </span>
-                <span className="hidden sm:inline">チャンネル選択中</span>
+      {/* Subscribe Modal */}
+      {subscribingChannel && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center px-4">
+          {/* Backdrop */}
+          <div
+            className="absolute inset-0 bg-black/50 backdrop-blur-sm"
+            onClick={() => {
+              if (status !== 'loading') {
+                setSubscribingChannel(null)
+                setEmail('')
+                setStatus('idle')
+                setMessage('')
+              }
+            }}
+          />
+
+          {/* Modal */}
+          <div className="relative bg-white rounded-3xl shadow-2xl w-full max-w-md p-8">
+            {status === 'success' ? (
+              <div className="text-center py-8">
+                <div className="text-5xl mb-4">🎉</div>
+                <h3 className="text-xl font-black text-slate-900 mb-2">登録完了！</h3>
+                <p className="text-slate-500">確認メールをお送りしました。</p>
               </div>
-              <div className="flex-1 flex gap-2 w-full">
-                <input
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  required
-                  placeholder="メールアドレスを入力"
-                  className="flex-1 bg-[#F2F2F2] rounded-full px-5 py-3 outline-none text-base font-medium focus:ring-2 focus:ring-[#FF0000]/20 focus:bg-white transition-all border border-transparent focus:border-[#FF0000]/30"
-                />
+            ) : (
+              <>
                 <button
-                  type="submit"
-                  disabled={status === 'loading'}
-                  className="bg-[#FF0000] text-white px-8 py-3 rounded-full font-bold hover:bg-[#CC0000] transition-all disabled:bg-slate-300 disabled:text-slate-500 active:scale-95 shadow-lg shadow-[#FF0000]/20 whitespace-nowrap"
+                  onClick={() => {
+                    setSubscribingChannel(null)
+                    setEmail('')
+                    setStatus('idle')
+                    setMessage('')
+                  }}
+                  className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 transition-colors"
                 >
-                  {status === 'loading' ? '登録中...' : '無料購読を開始'}
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                  </svg>
                 </button>
-              </div>
-            </form>
+
+                <div className="text-center mb-6">
+                  <div className="inline-flex items-center gap-2 bg-[#FF0000]/10 text-[#FF0000] px-4 py-1.5 rounded-full text-sm font-bold mb-4">
+                    ✉️ 無料購読
+                  </div>
+                  <h3 className="text-xl font-black text-slate-900">
+                    {channelName} を購読
+                  </h3>
+                  <p className="text-sm text-slate-500 mt-2">
+                    最新動画のAIレポートをメールでお届けします
+                  </p>
+                </div>
+
+                <form onSubmit={handleSubscribe} className="space-y-4">
+                  <input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    required
+                    placeholder="メールアドレスを入力"
+                    className="w-full px-5 py-4 bg-[#F2F2F2] rounded-2xl outline-none text-base font-medium focus:ring-2 focus:ring-[#FF0000]/20 focus:bg-white transition-all border border-transparent focus:border-[#FF0000]/30"
+                  />
+                  <button
+                    type="submit"
+                    disabled={status === 'loading'}
+                    className="w-full bg-[#FF0000] text-white py-4 rounded-full font-bold text-lg hover:bg-[#CC0000] transition-all shadow-lg shadow-[#FF0000]/20 active:scale-95 disabled:bg-slate-300 disabled:shadow-none"
+                  >
+                    {status === 'loading' ? (
+                      <span className="flex items-center justify-center gap-2">
+                        <svg className="w-5 h-5 animate-spin" fill="none" viewBox="0 0 24 24">
+                          <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                          <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+                        </svg>
+                        登録中...
+                      </span>
+                    ) : '無料で購読開始'}
+                  </button>
+                </form>
+
+                {message && (
+                  <p className={`mt-4 text-center text-sm font-bold ${status === 'error' ? 'text-[#FF0000]' : 'text-slate-500'}`}>
+                    {message}
+                  </p>
+                )}
+
+                <p className="text-center text-xs text-slate-400 mt-4">
+                  いつでも配信停止可能 · <a href="/privacy" className="underline hover:text-[#FF0000]">プライバシーポリシー</a>
+                </p>
+              </>
+            )}
           </div>
         </div>
-      </div>
+      )}
     </div>
   )
 }
