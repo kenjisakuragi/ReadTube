@@ -32,16 +32,21 @@ export default function ArticlePage() {
     const [upgradeEmail, setUpgradeEmail] = useState('')
     const [upgradeStatus, setUpgradeStatus] = useState<'idle' | 'loading' | 'error'>('idle')
     const [upgradeError, setUpgradeError] = useState('')
+    const [upgradePlan, setUpgradePlan] = useState<'single' | 'allaccess'>('single')
 
     const handleUpgrade = async (e: React.FormEvent) => {
         e.preventDefault()
         setUpgradeStatus('loading')
         setUpgradeError('')
         try {
+            const body: Record<string, string> = { email: upgradeEmail, plan: upgradePlan }
+            if (upgradePlan === 'single' && article?.channel_id) {
+                body.channelId = article.channel_id
+            }
             const res = await fetch('/api/stripe/checkout', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ email: upgradeEmail, plan: 'standard' }),
+                body: JSON.stringify(body),
             })
             const data = await res.json()
             if (data.url) {
@@ -82,18 +87,20 @@ export default function ArticlePage() {
                 // Token-based access (from email link)
                 const { data: user } = await supabase
                     .from('users')
-                    .select('id, subscription_tier')
+                    .select('id, subscription_tier, subscribed_channel_id')
                     .eq('unsubscribe_token', token)
                     .single()
 
                 if (user) {
-                    if (user.subscription_tier === 'standard' || user.subscription_tier === 'premium') {
+                    if (user.subscription_tier === 'allaccess') {
+                        setHasAccess(true)
+                    } else if (user.subscription_tier === 'single' && user.subscribed_channel_id === data.channel_id) {
                         setHasAccess(true)
                     } else {
-                        // Free user: check monthly article count
+                        // Free user or single plan for different channel: check monthly article count
                         const count = getMonthlyReadCount(user.id)
                         setFreeArticlesUsed(count)
-                        if (count < 7) {
+                        if (count < 3) {
                             setHasAccess(true)
                             incrementReadCount(user.id)
                         }
@@ -103,7 +110,7 @@ export default function ArticlePage() {
                 // No token: check localStorage for anonymous free reads
                 const readCount = getAnonymousReadCount()
                 setFreeArticlesUsed(readCount)
-                if (readCount < 7) {
+                if (readCount < 3) {
                     setHasAccess(true)
                     incrementAnonymousReadCount()
                 }
@@ -269,13 +276,34 @@ export default function ArticlePage() {
                                     🔒 この記事の続きを読むには
                                 </div>
                                 <h2 className="text-2xl font-black text-slate-900 mb-3">
-                                    月7本まで無料で読めます
+                                    月3本まで無料で読めます
                                 </h2>
                                 <p className="text-slate-500 mb-2">
-                                    今月の無料枠: <span className="font-black text-[#FF0000]">{freeArticlesUsed}/7本</span> 使用済み
+                                    今月の無料枠: <span className="font-black text-[#FF0000]">{freeArticlesUsed}/3本</span> 使用済み
                                 </p>
-                                <p className="text-slate-400 text-sm mb-8">
-                                    すべての記事を無制限に読むには、Standardプラン（月¥980）をご利用ください。
+                                <p className="text-slate-400 text-sm mb-6">
+                                    このチャンネルの記事を無制限に読むには
+                                </p>
+
+                                {/* Plan Selection Tabs */}
+                                <div className="flex gap-2 justify-center mb-6">
+                                    <button
+                                        onClick={() => setUpgradePlan('single')}
+                                        className={`px-5 py-2 rounded-full text-sm font-bold transition-all ${upgradePlan === 'single' ? 'bg-[#FF0000] text-white shadow-lg shadow-[#FF0000]/20' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+                                    >
+                                        Single — ¥500/月
+                                    </button>
+                                    <button
+                                        onClick={() => setUpgradePlan('allaccess')}
+                                        className={`px-5 py-2 rounded-full text-sm font-bold transition-all ${upgradePlan === 'allaccess' ? 'bg-slate-900 text-white shadow-lg' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'}`}
+                                    >
+                                        All Access — ¥2,980/月
+                                    </button>
+                                </div>
+                                <p className="text-xs text-slate-400 mb-6">
+                                    {upgradePlan === 'single'
+                                        ? 'このチャンネルの全記事が無制限 + ダイジェストメール'
+                                        : '全チャンネルの記事が無制限 + ダイジェストメール + アーカイブ'}
                                 </p>
 
                                 <form onSubmit={handleUpgrade} className="max-w-sm mx-auto space-y-3 mb-6">
@@ -290,9 +318,9 @@ export default function ArticlePage() {
                                     <button
                                         type="submit"
                                         disabled={upgradeStatus === 'loading'}
-                                        className="w-full bg-[#FF0000] text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-[#CC0000] transition-all shadow-lg shadow-[#FF0000]/20 disabled:bg-slate-300 disabled:shadow-none"
+                                        className={`w-full text-white px-8 py-4 rounded-full font-bold text-lg transition-all shadow-lg disabled:bg-slate-300 disabled:shadow-none ${upgradePlan === 'single' ? 'bg-[#FF0000] hover:bg-[#CC0000] shadow-[#FF0000]/20' : 'bg-slate-900 hover:bg-slate-700'}`}
                                     >
-                                        {upgradeStatus === 'loading' ? 'Stripeに接続中...' : 'Standardプランに登録 — ¥980/月'}
+                                        {upgradeStatus === 'loading' ? 'Stripeに接続中...' : upgradePlan === 'single' ? `Singleプランに登録 — ¥500/月` : `All Accessに登録 — ¥2,980/月`}
                                     </button>
                                 </form>
 

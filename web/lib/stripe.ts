@@ -9,9 +9,14 @@ export const stripe = process.env.STRIPE_SECRET_KEY
     : null as unknown as Stripe
 
 export const PLANS = {
-    standard: {
-        name: 'Standard',
-        priceId: process.env.STRIPE_PRICE_ID_STANDARD || '',
-        price: 980,
+    single: {
+        name: 'Single',
+        priceId: process.env.STRIPE_PRICE_ID_SINGLE || '',
+        price: 500,
+    },
+    allaccess: {
+        name: 'All Access',
+        priceId: process.env.STRIPE_PRICE_ID_ALLACCESS || '',
+        price: 2980,
     },
 } as const

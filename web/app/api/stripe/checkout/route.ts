@@ -6,15 +6,21 @@ export const dynamic = 'force-dynamic'
 
 export async function POST(req: NextRequest) {
     try {
-        const { email, plan } = await req.json()
+        const { email, plan, channelId } = await req.json()
 
         if (!email || !plan) {
             return NextResponse.json({ error: 'Missing email or plan' }, { status: 400 })
         }
 
+        // Validate plan
         const planConfig = PLANS[plan as keyof typeof PLANS]
         if (!planConfig) {
             return NextResponse.json({ error: 'Invalid plan' }, { status: 400 })
+        }
+
+        // Single plan requires a channelId
+        if (plan === 'single' && !channelId) {
+            return NextResponse.json({ error: 'Missing channelId for single plan' }, { status: 400 })
         }
 
         // Look up or create user in Supabase
@@ -48,6 +54,15 @@ export async function POST(req: NextRequest) {
             }
         }
 
+        // Build metadata for the checkout session
+        const sessionMetadata: Record<string, string> = {
+            supabase_user_id: user?.id?.toString() || '',
+            plan,
+        }
+        if (plan === 'single' && channelId) {
+            sessionMetadata.channel_id = channelId
+        }
+
         // Create Checkout Session
         const session = await stripe.checkout.sessions.create({
             customer: customerId,
@@ -59,12 +74,9 @@ export async function POST(req: NextRequest) {
                     quantity: 1,
                 },
             ],
-            success_url: `${process.env.NEXT_PUBLIC_APP_URL || 'https://readtube.jp'}/subscribe/success?session_id={CHECKOUT_SESSION_ID}`,
+            success_url: `${process.env.NEXT_PUBLIC_APP_URL || 'https://readtube.jp'}/subscribe/success?session_id={CHECKOUT_SESSION_ID}&plan=${plan}`,
             cancel_url: `${process.env.NEXT_PUBLIC_APP_URL || 'https://readtube.jp'}/#pricing`,
-            metadata: {
-                supabase_user_id: user?.id?.toString() || '',
-                plan,
-            },
+            metadata: sessionMetadata,
             allow_promotion_codes: true,
             billing_address_collection: 'auto',
             locale: 'ja',

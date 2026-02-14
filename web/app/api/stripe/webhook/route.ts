@@ -10,7 +10,6 @@ export async function POST(req: NextRequest) {
     const body = await req.text()
     const sig = req.headers.get('stripe-signature')!
 
-
     let event: Stripe.Event
 
     try {
@@ -31,6 +30,8 @@ export async function POST(req: NextRequest) {
                 const session = event.data.object as Stripe.Checkout.Session
                 const customerId = session.customer as string
                 const subscriptionId = session.subscription as string
+                const plan = session.metadata?.plan || 'single'
+                const channelId = session.metadata?.channel_id || null
 
                 // Find user by stripe_customer_id or by email
                 let { data: user } = await supabase
@@ -49,15 +50,27 @@ export async function POST(req: NextRequest) {
                 }
 
                 if (user) {
+                    const updateData: Record<string, any> = {
+                        subscription_tier: plan === 'allaccess' ? 'allaccess' : 'single',
+                        stripe_customer_id: customerId,
+                        stripe_subscription_id: subscriptionId,
+                    }
+
+                    // For single plan, store the subscribed channel
+                    if (plan === 'single' && channelId) {
+                        updateData.subscribed_channel_id = channelId
+                    }
+
+                    // For allaccess, clear any single-channel restriction
+                    if (plan === 'allaccess') {
+                        updateData.subscribed_channel_id = null
+                    }
+
                     await supabase
                         .from('users')
-                        .update({
-                            subscription_tier: 'standard',
-                            stripe_customer_id: customerId,
-                            stripe_subscription_id: subscriptionId,
-                        })
+                        .update(updateData)
                         .eq('id', user.id)
-                    console.log(`[Stripe] User ${user.id} upgraded to standard`)
+                    console.log(`[Stripe] User ${user.id} upgraded to ${plan}`)
                 }
                 break
             }
@@ -67,14 +80,14 @@ export async function POST(req: NextRequest) {
                 const customerId = subscription.customer as string
                 const status = subscription.status
 
-                const tier = (status === 'active' || status === 'trialing') ? 'standard' : 'free'
+                if (status !== 'active' && status !== 'trialing') {
+                    await supabase
+                        .from('users')
+                        .update({ subscription_tier: 'free' })
+                        .eq('stripe_customer_id', customerId)
+                }
 
-                await supabase
-                    .from('users')
-                    .update({ subscription_tier: tier })
-                    .eq('stripe_customer_id', customerId)
-
-                console.log(`[Stripe] Customer ${customerId} subscription updated: ${tier}`)
+                console.log(`[Stripe] Customer ${customerId} subscription updated: ${status}`)
                 break
             }
 
@@ -87,6 +100,7 @@ export async function POST(req: NextRequest) {
                     .update({
                         subscription_tier: 'free',
                         stripe_subscription_id: null,
+                        subscribed_channel_id: null,
                     })
                     .eq('stripe_customer_id', customerId)
 

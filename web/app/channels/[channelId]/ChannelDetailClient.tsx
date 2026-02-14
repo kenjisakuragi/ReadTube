@@ -33,6 +33,11 @@ export default function ChannelDetailClient({ channelId }: { channelId: string }
     const [subStatus, setSubStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle')
     const [subMessage, setSubMessage] = useState('')
 
+    // Stripe Single plan
+    const [singleEmail, setSingleEmail] = useState('')
+    const [singleStatus, setSingleStatus] = useState<'idle' | 'loading' | 'error'>('idle')
+    const [singleError, setSingleError] = useState('')
+
     const channels = channelsData as Channel[]
     const channel = channels.find(ch => ch.id === channelId)
 
@@ -77,6 +82,28 @@ export default function ChannelDetailClient({ channelId }: { channelId: string }
         } catch (err: any) {
             setSubStatus('error')
             setSubMessage(err.message)
+        }
+    }
+
+    const handleSinglePlan = async (e: React.FormEvent) => {
+        e.preventDefault()
+        setSingleStatus('loading')
+        setSingleError('')
+        try {
+            const res = await fetch('/api/stripe/checkout', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ email: singleEmail, plan: 'single', channelId }),
+            })
+            const data = await res.json()
+            if (data.url) {
+                window.location.href = data.url
+            } else {
+                throw new Error(data.error || 'エラーが発生しました')
+            }
+        } catch (err: any) {
+            setSingleStatus('error')
+            setSingleError(err.message)
         }
     }
 
@@ -142,7 +169,7 @@ export default function ChannelDetailClient({ channelId }: { channelId: string }
                 </div>
             </section>
 
-            {/* Subscribe CTA */}
+            {/* Subscribe & Purchase CTA */}
             <section className="bg-white border-b border-slate-200">
                 <div className="max-w-4xl mx-auto px-4 py-8">
                     {subStatus === 'success' ? (
@@ -151,32 +178,77 @@ export default function ChannelDetailClient({ channelId }: { channelId: string }
                             <p className="text-lg font-bold text-slate-900">{subMessage}</p>
                         </div>
                     ) : (
-                        <div className="flex flex-col md:flex-row items-center gap-6">
-                            <div className="flex-1">
-                                <h2 className="text-xl font-black text-slate-900 mb-1">
-                                    {channel?.name} のAIレポートを受け取る
-                                </h2>
-                                <p className="text-slate-500 text-sm">
-                                    新しい動画が公開されるたびに、AIが自動解析した日本語レポートをメールでお届けします。
-                                </p>
+                        <div className="space-y-6">
+                            {/* Free Subscribe Row */}
+                            <div className="flex flex-col md:flex-row items-center gap-6">
+                                <div className="flex-1">
+                                    <h2 className="text-xl font-black text-slate-900 mb-1">
+                                        {channel?.name} のAIレポートを受け取る
+                                    </h2>
+                                    <p className="text-slate-500 text-sm">
+                                        新しい動画が公開されるたびに、AIが自動解析した日本語レポートをメールでお届けします。
+                                    </p>
+                                </div>
+                                <form onSubmit={handleSubscribe} className="flex gap-3 w-full md:w-auto">
+                                    <input
+                                        type="email"
+                                        value={email}
+                                        onChange={(e) => setEmail(e.target.value)}
+                                        required
+                                        placeholder="メールアドレス"
+                                        className="flex-1 md:w-64 px-5 py-3 bg-[#F2F2F2] rounded-full outline-none text-sm font-medium focus:ring-2 focus:ring-[#FF0000]/20 focus:bg-white transition-all border border-transparent focus:border-[#FF0000]/30"
+                                    />
+                                    <button
+                                        type="submit"
+                                        disabled={subStatus === 'loading'}
+                                        className="bg-[#FF0000] text-white px-8 py-3 rounded-full text-sm font-bold hover:bg-[#CC0000] transition-all shadow-lg shadow-[#FF0000]/20 active:scale-95 disabled:bg-slate-300 whitespace-nowrap"
+                                    >
+                                        {subStatus === 'loading' ? '登録中...' : '無料で購読'}
+                                    </button>
+                                </form>
                             </div>
-                            <form onSubmit={handleSubscribe} className="flex gap-3 w-full md:w-auto">
-                                <input
-                                    type="email"
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                    required
-                                    placeholder="メールアドレス"
-                                    className="flex-1 md:w-64 px-5 py-3 bg-[#F2F2F2] rounded-full outline-none text-sm font-medium focus:ring-2 focus:ring-[#FF0000]/20 focus:bg-white transition-all border border-transparent focus:border-[#FF0000]/30"
-                                />
-                                <button
-                                    type="submit"
-                                    disabled={subStatus === 'loading'}
-                                    className="bg-[#FF0000] text-white px-8 py-3 rounded-full text-sm font-bold hover:bg-[#CC0000] transition-all shadow-lg shadow-[#FF0000]/20 active:scale-95 disabled:bg-slate-300 whitespace-nowrap"
-                                >
-                                    {subStatus === 'loading' ? '登録中...' : '無料で購読'}
-                                </button>
-                            </form>
+
+                            {/* Divider */}
+                            <div className="flex items-center gap-4">
+                                <div className="flex-1 h-px bg-slate-200" />
+                                <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">or</span>
+                                <div className="flex-1 h-px bg-slate-200" />
+                            </div>
+
+                            {/* Single Plan Purchase */}
+                            <div className="bg-[#FF0000]/5 rounded-2xl p-6">
+                                <div className="flex flex-col md:flex-row items-center gap-6">
+                                    <div className="flex-1">
+                                        <div className="flex items-center gap-2 mb-1">
+                                            <span className="bg-[#FF0000] text-white text-[10px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full">Single</span>
+                                            <span className="text-2xl font-black text-slate-900">¥500<span className="text-sm font-medium text-slate-400">/月</span></span>
+                                        </div>
+                                        <p className="text-slate-600 text-sm font-medium">
+                                            このチャンネルの全記事を無制限に閲覧 + ダイジェストメール配信
+                                        </p>
+                                    </div>
+                                    <form onSubmit={handleSinglePlan} className="flex gap-3 w-full md:w-auto">
+                                        <input
+                                            type="email"
+                                            value={singleEmail}
+                                            onChange={(e) => setSingleEmail(e.target.value)}
+                                            required
+                                            placeholder="メールアドレス"
+                                            className="flex-1 md:w-64 px-5 py-3 bg-white rounded-full outline-none text-sm font-medium focus:ring-2 focus:ring-[#FF0000]/20 transition-all border border-slate-200 focus:border-[#FF0000]/30"
+                                        />
+                                        <button
+                                            type="submit"
+                                            disabled={singleStatus === 'loading'}
+                                            className="bg-[#FF0000] text-white px-8 py-3 rounded-full text-sm font-bold hover:bg-[#CC0000] transition-all shadow-lg shadow-[#FF0000]/20 active:scale-95 disabled:bg-slate-300 whitespace-nowrap"
+                                        >
+                                            {singleStatus === 'loading' ? '接続中...' : '¥500で購読'}
+                                        </button>
+                                    </form>
+                                </div>
+                                {singleError && (
+                                    <p className="mt-3 text-sm font-bold text-[#FF0000]">{singleError}</p>
+                                )}
+                            </div>
                         </div>
                     )}
                     {subStatus === 'error' && subMessage && (

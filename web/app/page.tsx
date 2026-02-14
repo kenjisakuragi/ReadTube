@@ -33,7 +33,7 @@ export default function Home() {
       const res = await fetch('/api/stripe/checkout', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: upgradeEmail, plan: 'standard' }),
+        body: JSON.stringify({ email: upgradeEmail, plan: 'allaccess' }),
       })
       const data = await res.json()
       if (data.url) {
@@ -296,11 +296,11 @@ export default function Home() {
 
       {/* Pricing Section */}
       <section id="pricing" className="py-24 px-4 bg-[#FAFAFA]">
-        <div className="container mx-auto max-w-4xl text-center">
+        <div className="container mx-auto max-w-5xl text-center">
           <h2 className="text-3xl font-black text-slate-900 mb-4">シンプルな料金プラン</h2>
-          <p className="text-slate-500 mb-16 text-lg">まずは無料で体験。気に入ったらアップグレード。</p>
+          <p className="text-slate-500 mb-16 text-lg">まずは無料で体験。推しチャンネルから始めよう。</p>
 
-          <div className="grid md:grid-cols-2 gap-8 max-w-3xl mx-auto">
+          <div className="grid md:grid-cols-3 gap-6 max-w-4xl mx-auto">
             {/* Free Plan */}
             <div className="bg-white rounded-3xl border-2 border-slate-200 p-8 text-left">
               <div className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-2">Free</div>
@@ -311,7 +311,7 @@ export default function Home() {
               <ul className="space-y-3 text-slate-600 mb-8">
                 <li className="flex items-center gap-3">
                   <span className="text-[#FF0000] font-bold">✓</span>
-                  <span>月7本まで全文閲覧</span>
+                  <span>月3本まで全文閲覧</span>
                 </li>
                 <li className="flex items-center gap-3">
                   <span className="text-[#FF0000] font-bold">✓</span>
@@ -319,11 +319,11 @@ export default function Home() {
                 </li>
                 <li className="flex items-center gap-3">
                   <span className="text-slate-300 font-bold">—</span>
-                  <span className="text-slate-400">デイリーダイジェストメール</span>
+                  <span className="text-slate-400">ダイジェストメール</span>
                 </li>
                 <li className="flex items-center gap-3">
                   <span className="text-slate-300 font-bold">—</span>
-                  <span className="text-slate-400">過去アーカイブの閲覧</span>
+                  <span className="text-slate-400">過去アーカイブ</span>
                 </li>
               </ul>
               <button
@@ -334,39 +334,73 @@ export default function Home() {
               </button>
             </div>
 
-            {/* Standard Plan */}
+            {/* Single Plan */}
             <div className="bg-white rounded-3xl border-2 border-[#FF0000] p-8 text-left relative shadow-xl shadow-[#FF0000]/5">
               <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-[#FF0000] text-white text-xs font-black px-4 py-1.5 rounded-full uppercase tracking-widest">
                 おすすめ
               </div>
-              <div className="text-sm font-bold text-[#FF0000] uppercase tracking-widest mb-2">Standard</div>
+              <div className="text-sm font-bold text-[#FF0000] uppercase tracking-widest mb-2">Single</div>
               <div className="flex items-baseline gap-1 mb-6">
-                <span className="text-4xl font-black text-slate-900">¥980</span>
+                <span className="text-4xl font-black text-slate-900">¥500</span>
+                <span className="text-slate-400 font-medium">/月</span>
+              </div>
+              <p className="text-xs text-slate-500 -mt-4 mb-6">好きな1チャンネルを選択</p>
+              <ul className="space-y-3 text-slate-700 mb-8">
+                <li className="flex items-center gap-3">
+                  <span className="text-[#FF0000] font-bold">✓</span>
+                  <span><strong>選んだ1chの記事を無制限に</strong></span>
+                </li>
+                <li className="flex items-center gap-3">
+                  <span className="text-[#FF0000] font-bold">✓</span>
+                  <span><strong>ダイジェストメール配信</strong></span>
+                </li>
+                <li className="flex items-center gap-3">
+                  <span className="text-[#FF0000] font-bold">✓</span>
+                  <span>他チャンネルは月3本まで</span>
+                </li>
+                <li className="flex items-center gap-3">
+                  <span className="text-slate-300 font-bold">—</span>
+                  <span className="text-slate-400">過去アーカイブ</span>
+                </li>
+              </ul>
+              <button
+                onClick={scrollToChannels}
+                className="w-full bg-[#FF0000] text-white py-4 rounded-full font-bold hover:bg-[#CC0000] transition-all shadow-lg shadow-[#FF0000]/20"
+              >
+                チャンネルを選んで購読
+              </button>
+            </div>
+
+            {/* All Access Plan */}
+            <div className="bg-white rounded-3xl border-2 border-slate-900 p-8 text-left relative">
+              <div className="text-sm font-bold text-slate-900 uppercase tracking-widest mb-2">All Access</div>
+              <div className="flex items-baseline gap-1 mb-6">
+                <span className="text-4xl font-black text-slate-900">¥2,980</span>
                 <span className="text-slate-400 font-medium">/月</span>
               </div>
               <ul className="space-y-3 text-slate-700 mb-8">
                 <li className="flex items-center gap-3">
                   <span className="text-[#FF0000] font-bold">✓</span>
-                  <span><strong>全記事を無制限に閲覧</strong></span>
+                  <span><strong>全チャンネル無制限</strong></span>
                 </li>
                 <li className="flex items-center gap-3">
                   <span className="text-[#FF0000] font-bold">✓</span>
-                  <span>全チャンネル対象</span>
-                </li>
-                <li className="flex items-center gap-3">
-                  <span className="text-[#FF0000] font-bold">✓</span>
-                  <span><strong>毎日ダイジェストメール配信</strong></span>
+                  <span><strong>毎日ダイジェストメール</strong></span>
                 </li>
                 <li className="flex items-center gap-3">
                   <span className="text-[#FF0000] font-bold">✓</span>
                   <span><strong>過去アーカイブの閲覧</strong></span>
                 </li>
+                <li className="flex items-center gap-3">
+                  <span className="text-[#FF0000] font-bold">✓</span>
+                  <span>今後追加される全チャンネル</span>
+                </li>
               </ul>
               <button
                 onClick={() => setShowUpgradeModal(true)}
-                className="w-full bg-[#FF0000] text-white py-4 rounded-full font-bold hover:bg-[#CC0000] transition-all shadow-lg shadow-[#FF0000]/20"
+                className="w-full bg-slate-900 text-white py-4 rounded-full font-bold hover:bg-slate-700 transition-all shadow-lg"
               >
-                Standardプランに登録
+                All Accessに登録
               </button>
             </div>
           </div>
@@ -529,10 +563,10 @@ export default function Home() {
             </button>
 
             <div className="text-center mb-6">
-              <div className="inline-flex items-center gap-2 bg-[#FF0000]/10 text-[#FF0000] px-4 py-1.5 rounded-full text-sm font-bold mb-4">
-                ⚡ Standardプラン
+              <div className="inline-flex items-center gap-2 bg-slate-900/10 text-slate-900 px-4 py-1.5 rounded-full text-sm font-bold mb-4">
+                ⚡ All Access
               </div>
-              <h3 className="text-xl font-black text-slate-900">¥980/月 で全記事を無制限に</h3>
+              <h3 className="text-xl font-black text-slate-900">¥2,980/月 で全チャンネルを無制限に</h3>
               <p className="text-sm text-slate-500 mt-2">Stripeの安全な決済画面に遷移します</p>
             </div>
 
