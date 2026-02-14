@@ -204,7 +204,9 @@ export default function Home() {
                     <div className="p-5 space-y-3">
                       <div className="flex items-center justify-between gap-2">
                         <h3 className="font-bold text-slate-900 group-hover:text-[#FF0000] transition-colors leading-tight">
-                          {channel.name}
+                          <a href={`/channels/${channel.id}`} className="hover:underline">
+                            {channel.name}
+                          </a>
                         </h3>
                         {channel.subscribers && (
                           <span className="text-[10px] font-black text-[#FF0000] bg-[#FF0000]/5 px-2 py-0.5 rounded whitespace-nowrap">
@@ -224,6 +226,12 @@ export default function Home() {
                       >
                         ＋ 購読する
                       </button>
+                      <a
+                        href={`/channels/${channel.id}`}
+                        className="block text-center text-xs font-bold text-slate-400 hover:text-[#FF0000] transition-colors mt-2"
+                      >
+                        チャンネル詳細 →
+                      </a>
                     </div>
                   </div>
                 ))}
