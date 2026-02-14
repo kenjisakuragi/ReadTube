@@ -269,7 +269,7 @@ export default function Home() {
               <ul className="space-y-3 text-slate-600 mb-8">
                 <li className="flex items-center gap-3">
                   <span className="text-[#FF0000] font-bold">✓</span>
-                  <span>月3本まで全文閲覧</span>
+                  <span>月7本まで全文閲覧</span>
                 </li>
                 <li className="flex items-center gap-3">
                   <span className="text-[#FF0000] font-bold">✓</span>

@@ -59,13 +59,17 @@ async function main() {
             console.log(`  - Generating Comprehensive Guide (Persona: ${channel.persona})...`);
             const guide = await generateComprehensiveGuide(video.title, transcript, channel.persona);
 
+            // Extract Japanese title from the guide for email subject
+            const jaMatch = guide.match(/^#\s+(.+)$/m);
+            const jaTitle = jaMatch ? jaMatch[1] : video.title;
+
             // 3. Render and Send Email
             console.log(`  - Rendering and Sending Email...`);
             const videoUrl = `https://www.youtube.com/watch?v=${video.id}`;
             const htmlReport = renderEmail(channel.name, video.title, guide, videoUrl);
 
             const baseUrl = process.env.BASE_URL;
-            await sendChannelUpdate(channel.id, channel.name, video.title, htmlReport, baseUrl);
+            await sendChannelUpdate(channel.id, channel.name, jaTitle, htmlReport, baseUrl);
 
             // 4. Save to Database (Web Content & Logs)
             console.log(`  - Saving to Database...`);

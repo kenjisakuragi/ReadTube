@@ -68,7 +68,7 @@ export default function ArticlePage() {
                         // Free user: check monthly article count
                         const count = getMonthlyReadCount(user.id)
                         setFreeArticlesUsed(count)
-                        if (count < 3) {
+                        if (count < 7) {
                             setHasAccess(true)
                             incrementReadCount(user.id)
                         }
@@ -78,7 +78,7 @@ export default function ArticlePage() {
                 // No token: check localStorage for anonymous free reads
                 const readCount = getAnonymousReadCount()
                 setFreeArticlesUsed(readCount)
-                if (readCount < 3) {
+                if (readCount < 7) {
                     setHasAccess(true)
                     incrementAnonymousReadCount()
                 }
@@ -244,10 +244,10 @@ export default function ArticlePage() {
                                     🔒 この記事の続きを読むには
                                 </div>
                                 <h2 className="text-2xl font-black text-slate-900 mb-3">
-                                    月3本まで無料で読めます
+                                    月7本まで無料で読めます
                                 </h2>
                                 <p className="text-slate-500 mb-2">
-                                    今月の無料枠: <span className="font-black text-[#FF0000]">{freeArticlesUsed}/3本</span> 使用済み
+                                    今月の無料枠: <span className="font-black text-[#FF0000]">{freeArticlesUsed}/7本</span> 使用済み
                                 </p>
                                 <p className="text-slate-400 text-sm mb-8">
                                     すべての記事を無制限に読むには、Standardプラン（月¥980）をご利用ください。

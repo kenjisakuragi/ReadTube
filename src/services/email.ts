@@ -17,7 +17,7 @@ export async function sendChannelUpdate(
     htmlContent: string,
     baseUrl: string = config.BASE_URL
 ): Promise<void> {
-    const subject = `【ReadTube】${videoTitle}`;
+    const subject = `【読むYouTube】${videoTitle}`;
     const subscribers = await getSubscribersForChannel(channelId);
 
     if (subscribers.length === 0) {
